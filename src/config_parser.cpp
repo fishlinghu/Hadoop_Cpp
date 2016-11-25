@@ -15,7 +15,7 @@ struct MapReduceSpec {
 	{
 		string ipaddr;
 		string ports;
-	};
+	}tmp;
 	std::vector<name> ipaddr_port_list;
 	int n_workers, n_output_files, map_kilobytes;
 	string output_dir;
@@ -39,14 +39,13 @@ int main(int argc, char const *argv[])
 	string ipaddr;
 	string ports;		
 	// Read the file here...
-	while(!(config.eof()/* || line.empty())*/)){		
+	while(!(config.eof())){		
 		config >> line;
-		cout << line << endl;
 		// Populate the structures of MapReduceSpec here
 		std::string s = line;
 		std::string delimiter = "=";
 		std::string token = s.substr(0, s.find(delimiter));
-		cout << token << endl;
+		// cout << token << endl;
 		if(token.compare("n_workers") == 0) {
 			s.erase(0, s.find(delimiter) + delimiter.length());
 			token = s.substr(0, s.find(delimiter));
@@ -56,7 +55,6 @@ int main(int argc, char const *argv[])
 			mr_spec->ipaddr_port_list.reserve(20);
 			s.erase(0, s.find(delimiter) + delimiter.length());
 			token = s.substr(0, s.find(delimiter));
-			cout << "token: " << token << endl;
 			std::string dlim1 = ",";
 			//////////////////////////////////////////////////////
 			size_t pos = 0;
@@ -64,47 +62,42 @@ int main(int argc, char const *argv[])
 			int it = 0;
 			while ((pos = token.find(dlim1)) != std::string::npos) {
 			    token1 = token.substr(0, pos);
-			    std::cout << token1 << std::endl;
 			    ipaddr = token1.substr(0, (token1.find(":")));
-			    cout << token1.substr(0, (token1.find(":"))) << endl;
 			    token1.erase(0, (token1.find(":") + 1));
 			    ports = token1;
-			    cout << token1 << endl;
+			    // cout << token1 << endl;
 			    token.erase(0, pos + dlim1.length());
-			    mr_spec->ipaddr_port_list[it].ipaddr = ipaddr;
-			    mr_spec->ipaddr_port_list[it].ports = ports;
+			    mr_spec->tmp.ipaddr=ipaddr;
+			    mr_spec->tmp.ports=ports;
+
+			    mr_spec->ipaddr_port_list.push_back(mr_spec->tmp);
 			    it++;
 			}
-			// TOo take care of the corner case
-			std::cout << "token: " << token << std::endl;
+			// To take care of the corner case
 			ipaddr = token.substr(0, (token.find(":")));
 		    token.erase(0, (token.find(":") + 1));
 		    ports = token;
-		    mr_spec->ipaddr_port_list[it].ipaddr = ipaddr;
-		    mr_spec->ipaddr_port_list[it].ports = ports;
+		    mr_spec->tmp.ipaddr=ipaddr;
+		    mr_spec->tmp.ports=ports;
+
+		    mr_spec->ipaddr_port_list.push_back(mr_spec->tmp);
 		}
 		if(token.compare("input_files") == 0) {
 			mr_spec->input_file_name.reserve(20);
 			s.erase(0, s.find(delimiter) + delimiter.length());
 			token = s.substr(0, s.find(delimiter));
-			cout << "token: " << token << endl;
 			std::string dlim1 = ",";
 			//////////////////////////////////////////////////////
 			size_t pos = 0;
 			std::string token1;
-			std::vector<int>::iterator it;
-			// int it = 0;
+			int it = 0;
 			while ((pos = token.find(dlim1)) != std::string::npos) {
 			    token1 = token.substr(0, pos);
-			    std::cout << "token1: " << token1 << std::endl;
 			    token.erase(0, pos + dlim1.length());
-			    cout << *it << endl;
-			    mr_spec->input_file_name.insert(it, token1);
+			    mr_spec->input_file_name.push_back(token1);
 			    it++;
 			}
-			    cout << *it << endl;
-		    mr_spec->input_file_name.insert(it, token);
-		    cout << mr_spec->input_file_name.size() << endl;
+		    mr_spec->input_file_name.push_back(token);
 		}
 		if(token.compare("output_dir") == 0) {
 			s.erase(0, s.find(delimiter) + delimiter.length());
@@ -127,18 +120,23 @@ int main(int argc, char const *argv[])
 			mr_spec->user_id = token;			
 		}
 		token = s.substr(0, s.find(delimiter));
-		cout << token << endl;
 	}
 
 	//////////////////////////////////
 	// Reading the structure:
-	cout << mr_spec->input_file_name.size() << endl;
-	for (int i = 0; i < 2; ++i)
-	{
+	// cout << mr_spec->ipaddr_port_list.size() << endl;
+	for (int i = 0; i < mr_spec->input_file_name.size(); ++i)
 		cout << mr_spec->input_file_name[i] << endl;
-	}
 
+	for (int i = 0; i < mr_spec->ipaddr_port_list.size(); ++i)
+		cout << mr_spec->ipaddr_port_list[i].ipaddr << ":" << mr_spec->ipaddr_port_list[i].ports <<endl;
 
+	cout << "mr_spec->n_workers: " << mr_spec->n_workers << endl;
+	cout << "mr_spec->n_output_files: " << mr_spec->n_output_files << endl;
+	cout << "mr_spec->map_kilobytes: " << mr_spec->map_kilobytes << endl;
+	cout << "mr_spec->output_dir: " << mr_spec->output_dir << endl;
+	cout << "mr_spec->user_id: " << mr_spec->user_id << endl;
+	//////////////////////////////////
 
 	// Ending program gracefully
   	config.close();
