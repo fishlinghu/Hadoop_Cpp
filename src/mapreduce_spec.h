@@ -1,7 +1,13 @@
 #pragma once
 
+#include <iostream>
 #include <string>
+#include <vector>
+#include <map>
+#include <stdlib.h> // for calloc()
+#include <fstream> // for file handling 
 
+using namespace std;
 
 /* CS6210_TASK: Create your data structure here for storing spec from the config file */
 struct MapReduceSpec {
