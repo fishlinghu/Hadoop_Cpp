@@ -23,17 +23,17 @@ inline bool shard_files(const MapReduceSpec& mr_spec, std::vector<FileShard>& fi
     int i = 0;
     FILE* f;
     long long int fileSize, offset;
-    while(i < mr_spec->vec_of_file.size())
+    while(i < mr_spec.input_file_name.size())
         {   
         // Could be multiple files
-        f = fopen( mr_spec->vec_of_file[i] ,"r")
+        f = fopen( mr_spec.input_file_name[i] ,"r")
         fseek(f, 0, SEEK_END);
         fileSize = ftell(f);
         offset = 0;
         while(offset < fileSize)
             {   
             // record the offset in some data structure
-            offset = offset + mr_spec->map_kilobytes * 1000;
+            offset = offset + mr_spec.map_kilobytes * 1000;
             }
         fclose(f);
         ++i;
