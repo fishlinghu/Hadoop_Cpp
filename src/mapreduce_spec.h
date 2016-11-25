@@ -6,6 +6,7 @@
 #include <map>
 #include <stdlib.h> // for calloc()
 #include <fstream> // for file handling 
+#include <sys/stat.h> // this is for checking if output dir is present
 
 using namespace std;
 
@@ -175,6 +176,13 @@ inline bool validate_mr_spec(const MapReduceSpec& mr_spec) {
 			return false;
 		}
 	}
-	
+	// Check if the 'output_dir' exists or not.
+	struct stat sb;
+	if (stat(mr_spec.output_dir.c_str(), &sb) == 0 && S_ISDIR(sb.st_mode)) {
+		/*the given path-name is that of a directory*/
+	} else {
+		cout << "No output directory exists at the specified path" << endl;
+		return false;
+	}
 	return true;
 }
