@@ -26,7 +26,7 @@ inline bool shard_files(const MapReduceSpec& mr_spec, std::vector<FileShard>& fi
     while(i < mr_spec.input_file_name.size())
         {   
         // Could be multiple files
-        f = fopen( mr_spec.input_file_name[i] ,"r")
+        f = fopen( mr_spec.input_file_name[i].c_str() ,"r");
         fseek(f, 0, SEEK_END);
         fileSize = ftell(f);
         offset = 0;
