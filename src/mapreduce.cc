@@ -15,5 +15,6 @@ MapReduce::~MapReduce() {
 
 
 bool MapReduce::run(const std::string& config_filename) {
+	std::cout<<"Printing from 'mapreduce.cc'; function: MapReduce::run()" << std::endl;
 	return impl_->run(config_filename);
 }
