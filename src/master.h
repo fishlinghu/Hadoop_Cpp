@@ -3,6 +3,19 @@
 #include "mapreduce_spec.h"
 #include "file_shard.h"
 
+#include <grpc++/grpc++.h>
+
+#include "masterworker.grpc.pb.h"
+
+using grpc::Channel;
+using grpc::ClientAsyncResponseReader;
+using grpc::ClientContext;
+using grpc::CompletionQueue;
+using grpc::Status;
+using masterworker::Master_to_Worker;
+using masterworker::Worker_to_Master;
+using masterworker::jobAssign;
+
 
 /* CS6210_TASK: Handle all the bookkeeping that Master is supposed to do.
 	This is probably the biggest task for this project, will test your understanding of map reduce */
@@ -17,7 +30,7 @@ class Master {
 
 	private:
 		/* NOW you can add below, data members and member functions as per the need of your implementation*/
-
+		// store MapReduceSpec and FileShard here
 };
 
 
@@ -29,6 +42,11 @@ Master::Master(const MapReduceSpec& mr_spec, const std::vector<FileShard>& file_
 
 
 /* CS6210_TASK: Here you go. once this function is called you will complete whole map reduce task and return true if succeeded */
-bool Master::run() {
+bool Master::run() 
+	{
+	// Assign map tasks to worker
+	// Collect the result
+	// Assign reduce tasks to worker
+	// Collect the result
 	return true;
-}
+	}
