@@ -81,10 +81,14 @@ class CallData {
 	        	/*mapper code*/
         		auto mapper = get_mapper_from_task_factory("cs6210");
 				mapper->map("I m just a 'dummy', a \"dummy line\"");
+				/*set is_done*/
+				reply_.set_is_done(true);
 	        } else if (query_.map_reduce() == 2) {
 	        	/*reducer code*/
 				auto reducer = get_reducer_from_task_factory("cs6210");
-				reducer->reduce("dummy", std::vector<std::string>({"1", "1"}));	        	
+				reducer->reduce("dummy", std::vector<std::string>({"1", "1"}));	 
+				/*set is_done*/       	
+				reply_.set_is_done(true);
 	        }
         }
         ////////////////////////////////////////////////////////////////////////////

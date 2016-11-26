@@ -118,6 +118,7 @@ bool Master::run()
 	// Assign map tasks to worker
 	Master master(grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials()));
 	bool flag = master.AssignTask();
+	cout << "flag: " << flag <<endl;
 	// Collect the result
 	// Assign reduce tasks to worker
 	// Collect the result
