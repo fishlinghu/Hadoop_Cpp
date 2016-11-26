@@ -15,7 +15,11 @@ message Master_to_Worker {
 message MasterQuery{
 	string file_path = 1;
 	int64 file_offset = 2;
-	bool map_reduce = 3; // true: map, false: reduce
+	// because default value of 'bool' in grpc is 'false'
+	// it could lead to some bugs in the code. 
+	// Therefor making 'map_reduce' uint32 type, with
+	// 1: map; 2: reduce; 0:undefined
+	uint32 map_reduce = 3; 
 	int64 data_size = 4;
 	int64 ID_assigned_to_worker = 5;
 	string output_filename = 6;
