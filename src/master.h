@@ -25,15 +25,15 @@ class Master {
 	public:
 		/* DON'T change the function signature of this constructor */
 		Master(const MapReduceSpec&, const std::vector<FileShard>&);
-
+		explicit Master(std::shared_ptr<Channel> channel)
+    		: stub_(jobAssign::NewStub(channel)) {}
 		/* DON'T change this function's signature */
 		bool run();
 
 	private:
 		/* NOW you can add below, data members and member functions as per the need of your implementation*/
 		// store MapReduceSpec and FileShard here
-		//Master master(grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials()));
-		Master master;
+		//Master master;
 		bool AssignTask();
 		std::unique_ptr<jobAssign::Stub> stub_;
 };
@@ -51,16 +51,17 @@ bool Master::AssignTask()
 	auto channel = grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials());
 	auto stub = masterworker::jobAssign::NewStub(channel);
 	
-	MasterQuery info;
-    info.set_file_path("input");
-    info.set_file_offset(5);
-    info.set_map_reduce(1);
-    info.set_data_size(1);
-    info.set_id_assigned_to_worker(1);
-    info.set_output_filename("output");
+	Master_to_Worker request;
+	MasterQuery* info;
+	info = request.add_masterquery();
+    info->set_file_path("input");
+    info->set_file_offset(5);
+    info->set_map_reduce(1);
+    info->set_data_size(1);
+    info->set_id_assigned_to_worker(1);
+    info->set_output_filename("output");
     
-    Master_to_Worker request;
-    request.set_masterquery( info );
+    
     
     // Container for the data we expect from the server.
     Worker_to_Master reply;
@@ -115,6 +116,7 @@ bool Master::AssignTask()
 bool Master::run() 
 	{
 	// Assign map tasks to worker
+	Master master(grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials()));
 	bool flag = master.AssignTask();
 	// Collect the result
 	// Assign reduce tasks to worker
