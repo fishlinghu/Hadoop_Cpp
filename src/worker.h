@@ -40,7 +40,7 @@ extern std::shared_ptr<BaseReducer> get_reducer_from_task_factory(const std::str
 
 /* Creating a new CallData class and initantiating its object inside Worker class */
 ////////////////////////////////////////////////////////////
-  class CallData {
+class CallData {
    public:
     // Take in the "service" instance (in this case representing an asynchronous
     // server) and the completion queue "cq" used for asynchronous communication
@@ -165,7 +165,7 @@ class Worker {
 	  }
 	private:
 		/* NOW you can add below, data members and member functions as per the need of your implementation*/
-		string ip_addr;
+		string worker_ip_addr;
 		std::unique_ptr<ServerCompletionQueue> cq_;
 		jobAssign::AsyncService service_;
 		std::unique_ptr<Server> worker_;
@@ -178,7 +178,7 @@ class Worker {
 /* CS6210_TASK: ip_addr_port is the only information you get when started.
 	You can populate your other class data members here if you want */
 Worker::Worker(std::string ip_addr_port) { // "Constructor"
-	ip_addr = ip_addr_port;
+	worker_ip_addr = ip_addr_port;
 }
 
 /* CS6210_TASK: Here you go. once this function is called your woker's job is to keep looking for new tasks 
@@ -204,6 +204,24 @@ bool Worker::run() {
 	/* I think depending on the message in the queue, whether
 	   'map_reduce' is true(map) or false(reduce), we will call the 
 	   functions accordingly */
+	cout << "Coming from Worker::run()" << endl;
+	std::string server_address(worker_ip_addr);
+
+    ServerBuilder builder;
+    // Listen on the given address without any authentication mechanism.
+    builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
+    // Register "service_" as the instance through which we'll communicate with
+    // clients. In this case it corresponds to an *asynchronous* service.
+    builder.RegisterService(&service_);
+    // Get hold of the completion queue used for the asynchronous communication
+    // with the gRPC runtime.
+    cq_ = builder.AddCompletionQueue();
+    // Finally assemble the server.
+    worker_ = builder.BuildAndStart();
+    std::cout << "Server listening on " << server_address << std::endl;
+
+    // Proceed to the server's main loop.
+    HandleRpcs();
 
 
 	return true;
