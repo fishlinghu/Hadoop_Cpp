@@ -2,8 +2,16 @@
 
 #include <mr_task_factory.h>
 #include "mr_tasks.h"
+#include <memory>
+#include <iostream>
+#include <string>
+#include <thread>
+
+#include <grpc++/grpc++.h>
+#include "masterworker.grpc.pb.h"
 
 
+using namespace std;
 /* CS6210_TASK: Handle all the task a Worker is supposed to do.
 	This is a big task for this project, will test your understanding of map reduce */
 class Worker {
@@ -17,14 +25,14 @@ class Worker {
 
 	private:
 		/* NOW you can add below, data members and member functions as per the need of your implementation*/
-
+		string ip_addr;
 };
 
 
 /* CS6210_TASK: ip_addr_port is the only information you get when started.
 	You can populate your other class data members here if you want */
 Worker::Worker(std::string ip_addr_port) {
-
+	ip_addr = ip_addr_port;
 }
 
 extern std::shared_ptr<BaseMapper> get_mapper_from_task_factory(const std::string& user_id);
@@ -38,6 +46,12 @@ extern std::shared_ptr<BaseReducer> get_reducer_from_task_factory(const std::str
 bool Worker::run() {
 	/*  Below 5 lines are just examples of how you will call map and reduce
 		Remove them once you start writing your own logic */ 
+	// Big while loop
+	// Worker should keep continue spinning; 
+	// if you receive a job from the master, (whatever job worker need to do,) worker with start with the job
+	// Use the worker to receive the message from the master 
+	// and once it receive the message it should reply to the message to make sure communication is ok
+
 	std::cout << "worker.run(), I 'm not ready yet" <<std::endl;
 	auto mapper = get_mapper_from_task_factory("cs6210");
 	mapper->map("I m just a 'dummy', a \"dummy line\"");

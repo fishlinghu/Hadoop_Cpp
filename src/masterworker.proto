@@ -2,6 +2,12 @@ syntax = "proto3";
 
 package masterworker;
 
+// Service provode by master
+service jobAssign {
+	// Master will make the rpc 'master as client and worker as server'
+	rpc AssignTask (Master_to_Worker) returns (Worker_to_Master) {}
+}
+
 message Master_to_Worker {
 	repeated MasterQuery masterquery = 1;
 }
@@ -12,8 +18,10 @@ message MasterQuery{
 	bool map_reduce = 3; // true: map, false: reduce
 	int64 data_size = 4;
 	int64 ID_assigned_to_worker = 5;
+	string output_filename = 6;
 }
 
 message Worker_to_Master {
-	string file_path = 1;
+	// string file_path = 1;
+	bool is_done = 1;
 }
