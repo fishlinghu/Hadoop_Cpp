@@ -80,7 +80,7 @@ bool Master::AssignTask()
     info->set_map_reduce(1);
     info->set_data_size(1);
     info->set_id_assigned_to_worker(1);
-    info->set_output_filename("output");
+    info->set_output_filename("0");
     
     // Container for the data we expect from the server.
     Worker_to_Master reply;
@@ -223,6 +223,7 @@ void Master::sort_and_write()
 	while(i < num_of_file_shard)
 		{	
 		ifs[i]->close();
+		//remove( map_output_filename_vec[i].c_str() );
 		++i;
 		}
 
