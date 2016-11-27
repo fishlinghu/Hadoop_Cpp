@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <fstream>
 #include <stdio.h>
+#include <sstream>
 
 #include <grpc++/grpc++.h>
 #include "masterworker.grpc.pb.h"
@@ -87,8 +88,21 @@ class CallData {
                 /*read it till the data-size; move pointer from offset till data-size*/
                 /*the file to open: query_.file_path() <--- oprn this file in read mode
                 with appropriate offset and data-size*/
-				mapper->map("I m just a 'dummy', a \"dummy line\"");
+                ifstream infile(query_.file_path());
+                int data_size = query_.data_size();
+                int file_offset = query_.file_offset();
+                char* buffer = new char[data_size];
+                // file operation
+                infile.seekg(file_offset); // move the pointer to the offset
+                infile.read(buffer, data_size); // put so many character into the buffer
+
+                std::stringstream ss;
+                ss.str(buffer); // this will convert it into buffer
+                std::string line;
+                while(std::getline(ss, line))
+    				mapper->map(line);
                 
+                infile.close();
                 ///////////////////////////////////////////////////////////////////////
                 // sort single file.. name is given by the master in the field 'output_filename'
                 // in the end we want to replace the unsorted file with the sorted file of the 
