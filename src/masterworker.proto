@@ -22,7 +22,7 @@ message MasterQuery{
 	uint32 map_reduce = 3; 
 	int64 data_size = 4;
 	int64 ID_assigned_to_worker = 5;
-	string output_filename = 6;
+	string output_filename = 6; // output file name for worker to produce
 }
 
 message Worker_to_Master {

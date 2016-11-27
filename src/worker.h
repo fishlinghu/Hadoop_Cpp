@@ -80,10 +80,15 @@ class CallData {
         for (int i = 0; i < size; ++i) // parse through all the queries in the queue
         {
 	        query_ = request_.masterquery(i);
-	        if (query_.map_reduce() == 1) {
+	        if (query_.map_reduce() == 1) { // mapper
 	        	/*mapper code*/
         		auto mapper = get_mapper_from_task_factory("cs6210");
+                /*pass one line at a time from the input file+offset to this function*/
+                /*read it till the data-size; move pointer from offset till data-size*/
+                /*the file to open: query_.file_path() <--- oprn this file in read mode
+                with appropriate offset and data-size*/
 				mapper->map("I m just a 'dummy', a \"dummy line\"");
+                
                 ///////////////////////////////////////////////////////////////////////
                 // sort single file.. name is given by the master in the field 'output_filename'
                 // in the end we want to replace the unsorted file with the sorted file of the 
@@ -119,10 +124,15 @@ class CallData {
                 /////////////////////////////////////////////////////////////
 				/*set is_done*/
 				reply_.set_is_done(true);
-	        } else if (query_.map_reduce() == 2) {
+	        } else if (query_.map_reduce() == 2) { // reducer code
 	        	/*reducer code*/
 				auto reducer = get_reducer_from_task_factory("cs6210");
-				reducer->reduce("dummy", std::vector<std::string>({"1", "1"}));	 
+                /*todo.....
+                open a file; read a file and pass the parameter(key) from the file to the reducer*/
+                /*have to understand: what is std::vector<std::string>*/
+                /*replace the 'dummy' with real key...*/
+                /*post it on piazza...if you don't understand*/
+				reducer->reduce("dummy"/*key*/, std::vector<std::string>({"1", "1"})/*value*/);	 
 				/*set is_done*/       	
 				reply_.set_is_done(true);
 	        }
