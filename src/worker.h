@@ -72,7 +72,10 @@ class CallData {
         // the one for this CallData. The instance will deallocate itself as
         // part of its FINISH state.
         new CallData(service_, cq_);
-
+////////////////
+            // BaseMapper* BM1;
+            // BM1->impl_->emit("hello", "1");
+////////////////        
         // The actual processing.
         ///////////////////////////////////////////////////////////////////////////
         // use your own function here... 		
@@ -83,11 +86,17 @@ class CallData {
 	        query_ = request_.masterquery(i);
 	        if (query_.map_reduce() == 1) { // mapper
 	        	/*mapper code*/
+                ///////////////////////
+                // BaseMapper* BM1; // cannot do it because it is NOT a friend
+                // BM1->impl_->emit("hello", "1");
+                ///////////////////////
         		auto mapper = get_mapper_from_task_factory("cs6210");
                 /*pass one line at a time from the input file+offset to this function*/
                 /*read it till the data-size; move pointer from offset till data-size*/
                 /*the file to open: query_.file_path() <--- oprn this file in read mode
                 with appropriate offset and data-size*/
+                /**/
+
                 ifstream infile(query_.file_path());
                 int data_size = query_.data_size();
                 int file_offset = query_.file_offset();
@@ -99,8 +108,10 @@ class CallData {
                 std::stringstream ss;
                 ss.str(buffer); // this will convert it into buffer
                 std::string line;
+
                 while(std::getline(ss, line))
-    				mapper->map(line);
+    				mapper->map(line); // this will call the emit() function internally
+                                       // for a given line
                 
                 infile.close();
                 ///////////////////////////////////////////////////////////////////////
@@ -151,7 +162,7 @@ class CallData {
 				reply_.set_is_done(true);
 	        }
         }
-        ////////////////////////////////////////////////////////////////////////////
+            ////////////////////////////////////////////////////////////////////////////
 
         // And we are done! Let the gRPC runtime know we've finished, using the
         // memory address of this instance as the uniquely identifying tag for
@@ -198,9 +209,20 @@ class Worker {
 	public:
 		/* DON'T change the function signature of this constructor */
 		Worker(std::string ip_addr_port);
-
+    ////////////////// 
+        // void Worker_new(BaseMapper& BM) {
+        //     BM.impl_->emit("hello", "1");
+        //     return;
+        // }
+        // void Worker_new1(BaseMapperInternal& BMI) {
+        //     BMI.emit("hello", "1");
+        //     return;
+        // }
+    //////////////////
 		/* DON'T change this function's signature */
 		bool run();
+
+
 
 		/*Adding distructor*/
 		~Worker() {
@@ -216,6 +238,9 @@ class Worker {
 	    obj_CallData = new CallData(&service_, cq_.get());
 	    void* tag;  // uniquely identifies a request.
 	    bool ok;
+        // BaseMapper& bm;
+        // // bm.impl_->emit("hello", "1");
+        // Worker_new(bm);
 	    while (true) {
 	      // Block waiting to read the next event from the completion queue. The
 	      // event is uniquely identified by its tag, which in this case is the
@@ -251,23 +276,7 @@ Worker::Worker(std::string ip_addr_port) { // "Constructor"
 	BaseReduer's member BaseReducerInternal impl_ directly, 
 	so you can manipulate them however you want when running map/reduce tasks*/
 bool Worker::run() {
-	/*  Below 5 lines are just examples of "how you will call map and reduce"
-		Remove them once you start writing your own logic */ 
-	// Big while loop
-	// Worker should keep continue spinning; 
-	// if you receive a job from the master, (whatever job worker need to do,) worker with start with the job
-	// Use the worker to receive the message from the master 
-	// and once it receive the message it should reply to the message to make sure communication is ok
 
-	// std::cout << "worker.run(), I 'm not ready yet" <<std::endl;
-	// auto mapper = get_mapper_from_task_factory("cs6210");
-	// mapper->map("I m just a 'dummy', a \"dummy line\"");
-	// auto reducer = get_reducer_from_task_factory("cs6210");
-	// reducer->reduce("dummy", std::vector<std::string>({"1", "1"}));
-
-	/* I think depending on the message in the queue, whether
-	   'map_reduce' is true(map) or false(reduce), we will call the 
-	   functions accordingly */
 	cout << "Coming from Worker::run()" << endl;
 	std::string server_address(worker_ip_addr);
 
@@ -283,6 +292,12 @@ bool Worker::run() {
     // Finally assemble the server.
     worker_ = builder.BuildAndStart();
     std::cout << "Server listening on " << server_address << std::endl;
+
+    //////////////////////////// You can set filename here////////////////////////
+    BaseMapper* BM1; // because it is a friend
+    BM1->impl_->emit("hello", "1");
+    BM1->impl_->filename = "output_filename";
+    ////////////////////////////
 
     // Proceed to the server's main loop.
     HandleRpcs();

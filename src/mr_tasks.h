@@ -17,6 +17,7 @@ struct BaseMapperInternal {
 		void emit(const std::string& key, const std::string& val);
 
 		/* NOW you can add below, data members and member functions as per the need of your implementation*/
+		string filename;
 };
 
 
@@ -55,6 +56,7 @@ struct BaseReducerInternal {
 		void emit(const std::string& key, const std::string& val);
 
 		/* NOW you can add below, data members and member functions as per the need of your implementation*/
+		string filename;
 };
 
 
