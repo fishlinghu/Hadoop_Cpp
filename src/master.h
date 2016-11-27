@@ -48,6 +48,7 @@ class Master {
 		vector<string> map_output_filename_vec;
 		vector<string> worker_IP_vec;
 		vector<string> worker_port_vec;
+		vector<string> input_file_name;
 };
 
 
@@ -76,6 +77,13 @@ Master::Master(const MapReduceSpec& mr_spec, const std::vector<FileShard>& file_
 		worker_port_vec.push_back( mr_spec.ipaddr_port_list[i].ports );
 		++i;
 		}
+
+	i = 0;
+	while(i < mr_spec.input_file_name.size())
+		{	
+		input_file_name.push_back( mr_spec.input_file_name[i] );
+		++i;
+		}
 	}
 
 bool Master::AssignTask()
@@ -86,12 +94,12 @@ bool Master::AssignTask()
 	Master_to_Worker request;
 	MasterQuery* info;
 	info = request.add_masterquery();
-    info->set_file_path("input");
-    info->set_file_offset(5);
+    info->set_file_path( input_file_name[0] ); //<---the name of input file
+    info->set_file_offset( 10 );
     info->set_map_reduce(1);
-    info->set_data_size(1);
+    info->set_data_size( 100 ); //<--
     info->set_id_assigned_to_worker(1);
-    info->set_output_filename("0");
+    info->set_output_filename("0"); //<---the name of output file
     
     // Container for the data we expect from the server.
     Worker_to_Master reply;
@@ -155,7 +163,9 @@ bool Master::check_end(vector<bool> &input)
 
 void Master::sort_and_write()
 	{
-	ofstream fout("output");
+	// merge multiple files from mapper into one big file
+	ofstream fout("output");//<--- input file for reducer
+	// add offset in the future
 
 	vector <ifstream *> ifs;
 
