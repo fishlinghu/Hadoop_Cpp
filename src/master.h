@@ -1,7 +1,11 @@
 #pragma once
-
+#include <string>
+#include <fstream>
+#include <sstream>
+#include <vector>
 #include "mapreduce_spec.h"
 #include "file_shard.h"
+
 
 #include <grpc++/grpc++.h>
 
@@ -17,6 +21,7 @@ using masterworker::MasterQuery;
 using masterworker::Worker_to_Master;
 using masterworker::jobAssign;
 
+using namespace std;
 
 /* CS6210_TASK: Handle all the bookkeeping that Master is supposed to do.
 	This is probably the biggest task for this project, will test your understanding of map reduce */
@@ -35,7 +40,12 @@ class Master {
 		// store MapReduceSpec and FileShard here
 		//Master master;
 		bool AssignTask();
+		void sort_and_write();
+		bool check_end(vector<bool> &input);
 		std::unique_ptr<jobAssign::Stub> stub_;
+		int num_of_worker;
+		int num_of_file_shard;
+		vector<string> map_output_filename_vec;
 };
 
 
@@ -44,6 +54,17 @@ class Master {
 Master::Master(const MapReduceSpec& mr_spec, const std::vector<FileShard>& file_shards) 
 	{
 	//Master master(grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials()));
+	num_of_file_shard = 1;
+	int i = 0;
+	ostringstream sstream;
+
+	while(i < num_of_file_shard)
+		{	
+		sstream.str("");
+		sstream << i;
+		map_output_filename_vec.push_back( sstream.str() );
+		++i;
+		}
 	}
 
 bool Master::AssignTask()
@@ -60,8 +81,6 @@ bool Master::AssignTask()
     info->set_data_size(1);
     info->set_id_assigned_to_worker(1);
     info->set_output_filename("output");
-    
-    
     
     // Container for the data we expect from the server.
     Worker_to_Master reply;
@@ -111,6 +130,106 @@ bool Master::AssignTask()
         }
 	}
 
+bool Master::check_end(vector<bool> &input)
+	{
+	int i = 0;
+	while(i < input.size())
+		{	
+		if(input[i] == true)
+			return true;
+		++i;
+		}
+	return false;
+	}
+
+void Master::sort_and_write()
+	{
+	ofstream fout("output");
+
+	vector <ifstream *> ifs;
+
+	ifstream *ptr;
+
+	int i = 0;
+	while(i < num_of_file_shard)
+		{	
+		ptr = new ifstream();
+		ifs.push_back(ptr);
+		ifs[i]->open( map_output_filename_vec[i].c_str() );
+		++i;
+		}
+
+	vector<string> buf_key( num_of_file_shard );
+	vector<string> buf_val( num_of_file_shard );
+	vector<bool> fileEnd( num_of_file_shard, false );
+
+	i = 0;
+	while (i < num_of_file_shard)
+		{	
+		if(*(ifs[i]) >> buf_key[i])
+			{
+			*(ifs[i]) >> buf_val[i];
+			}
+		else
+			{	
+			fileEnd[i] = true;
+			}
+		++i;
+		}
+
+	string tempStr;
+	string oldStr;
+	int idx;
+	while( check_end( fileEnd ) )
+		{	
+		// chose the file to read from by comparing the strings
+		tempStr = "";
+		i = 0;
+		while(i < num_of_file_shard)
+			{	
+			if(fileEnd[i] == false)
+				{	
+				if(tempStr.empty() == true || tempStr.compare(buf_key[i]) > 0)
+					{	
+					tempStr = buf_key[i];
+					idx = i;
+					}
+				}
+			++i;
+			}
+		// now we decide to read from ifs[idx]
+		// oldStr is the word we want to write in this round
+		oldStr = buf_key[idx];
+		cout << oldStr << endl;
+		fout << buf_key[idx] << " " << buf_val[idx] << endl;
+		while( *(ifs[idx]) >> buf_key[idx] && oldStr.compare( buf_key[idx] ) == 0 )
+			{
+			*(ifs[idx]) >> buf_val[idx];
+			fout << buf_key[idx] << " " << buf_val[idx] << endl;
+			}
+		if( oldStr.compare( buf_key[idx] ) == 0 )
+			{
+			// we reach the end of ifs[idx]
+			fileEnd[idx] = true;
+			}
+		else
+			{	
+			*(ifs[idx]) >> buf_val[idx];
+			}
+		// else, the buf[idx] contains the next word we are going to read from ifs[idx]
+		}
+
+	i = 0;
+	while(i < num_of_file_shard)
+		{	
+		ifs[i]->close();
+		++i;
+		}
+
+	fout.close();
+	return;
+
+	}
 
 /* CS6210_TASK: Here you go. once this function is called you will complete whole map reduce task and return true if succeeded */
 bool Master::run() 
@@ -120,6 +239,7 @@ bool Master::run()
 	bool flag = master.AssignTask();
 	cout << "flag: " << flag <<endl;
 	// Collect the result
+	sort_and_write();
 	// Assign reduce tasks to worker
 	// Collect the result
 	return true;

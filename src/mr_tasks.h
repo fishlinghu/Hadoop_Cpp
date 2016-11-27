@@ -30,7 +30,7 @@ inline BaseMapperInternal::BaseMapperInternal() {
 inline void BaseMapperInternal::emit(const std::string& key, const std::string& val) {
 	std::cout << "Dummy emit by BaseMapperInternal: " << key << ", " << val << std::endl;
 	ofstream file;
-    file.open ("output_file_name", ios_base::out | ios_base::app); 
+    file.open ("0", ios_base::out | ios_base::app); 
     // filename should be unique for each worker
     // so we should assign each worker with an unique ID
     // in that way, we dont need to communicate with the master to tell it the path of temporary file
@@ -68,7 +68,7 @@ inline BaseReducerInternal::BaseReducerInternal() {
 inline void BaseReducerInternal::emit(const std::string& key, const std::string& val) {
 	std::cout << "Dummy emit by BaseReducerInternal: " << key << ", " << val << std::endl;
 	ofstream file;
-    file.open ("output_file_name", ios_base::out | ios_base::app); 
+    file.open ("0", ios_base::out | ios_base::app); 
     file << key << " " << val << endl;
 
     file.close();
