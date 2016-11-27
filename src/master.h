@@ -46,6 +46,8 @@ class Master {
 		int num_of_worker;
 		int num_of_file_shard;
 		vector<string> map_output_filename_vec;
+		vector<string> worker_IP_vec;
+		vector<string> worker_port_vec;
 };
 
 
@@ -53,7 +55,7 @@ class Master {
 	You can populate your other class data members here if you want */
 Master::Master(const MapReduceSpec& mr_spec, const std::vector<FileShard>& file_shards) 
 	{
-	//Master master(grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials()));
+	num_of_worker = mr_spec.n_workers;
 	num_of_file_shard = 1;
 	int i = 0;
 	ostringstream sstream;
@@ -63,6 +65,15 @@ Master::Master(const MapReduceSpec& mr_spec, const std::vector<FileShard>& file_
 		sstream.str("");
 		sstream << i;
 		map_output_filename_vec.push_back( sstream.str() );
+		++i;
+		}
+
+	i = 0;
+	while(i < num_of_worker)
+		{	
+		cout << mr_spec.ipaddr_port_list[i].ipaddr << endl;
+		worker_IP_vec.push_back( mr_spec.ipaddr_port_list[i].ipaddr );
+		worker_port_vec.push_back( mr_spec.ipaddr_port_list[i].ports );
 		++i;
 		}
 	}
