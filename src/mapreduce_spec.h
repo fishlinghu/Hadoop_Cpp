@@ -15,8 +15,8 @@ struct MapReduceSpec {
 	std::vector<string> input_file_name; // file name 'input/testdata_1.txt'
 	struct name // for a given worker
 	{
-		string ipaddr;
-		string ports;
+		string ipaddr; // localhost
+		string ports; // port ex. 50051
 	} tmp;
 	std::vector<name> ipaddr_port_list;
 	int n_workers, n_output_files, map_kilobytes;
