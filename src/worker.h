@@ -6,6 +6,9 @@
 #include <iostream>
 #include <string>
 #include <thread>
+#include <algorithm>
+#include <fstream>
+#include <stdio.h>
 
 #include <grpc++/grpc++.h>
 #include "masterworker.grpc.pb.h"
@@ -81,8 +84,39 @@ class CallData {
 	        	/*mapper code*/
         		auto mapper = get_mapper_from_task_factory("cs6210");
 				mapper->map("I m just a 'dummy', a \"dummy line\"");
-                // "0"
-                // sort single file
+                ///////////////////////////////////////////////////////////////////////
+                // sort single file.. name is given by the master in the field 'output_filename'
+                // in the end we want to replace the unsorted file with the sorted file of the 
+                // same name.
+                vector<string> names;
+                string in_filename(query_.output_filename());
+                string out_filename = in_filename + "_tmp";
+                ifstream in(in_filename); // file-pointer associated with input file
+                fstream out; // file-pointer associated with output file
+                out.open(out_filename, fstream::out); // if not present create it.
+                if(!in.is_open())
+                    cout << "Unable to open file" << endl;
+                
+                string word;
+                while(getline(in, word))
+                    names.push_back(word);
+
+                sort(names.begin(), names.end());
+
+                for (size_t i = 0; i < names.size(); ++i)
+                    out << names[i] << '\n';
+
+                // close the output and file
+                out.close();
+                in.close();
+                // now remove the input file and rename output file
+                // by input file
+                int result= rename( out_filename.c_str() , in_filename.c_str() );
+                if ( result == 0 )
+                    puts ( "File successfully renamed" );
+                else
+                    perror( "Error renaming file" );    
+                /////////////////////////////////////////////////////////////
 				/*set is_done*/
 				reply_.set_is_done(true);
 	        } else if (query_.map_reduce() == 2) {
