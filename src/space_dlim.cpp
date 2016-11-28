@@ -10,11 +10,41 @@ int main(int argc, char const *argv[])
 	ifstream inFile(argv[1]);
 	string firstWord;
 
-	while (inFile >> firstWord)
-	{
-	    cout << firstWord << endl;
-	    inFile.ignore(numeric_limits<streamsize>::max(), '\n');
+
+	// while (inFile >> firstWord)
+	// {
+	//     cout << firstWord << endl;
+	//     inFile.ignore(numeric_limits<streamsize>::max(), '\n');
+	// }
+
+	string line;
+	while(getline(inFile, line)) {
+		string dlim = " ";
+		string token = line.substr(0, line.find(dlim));
+		cout << "token: " << token << endl;
 	}
+
+
+
+	inFile.seekg(0, ios::beg);
+	inFile.seekg(10);
+	char* buffer = new char[40];
+	inFile.read(buffer, 40);
+
+	std::stringstream ss;
+	ss.str(buffer);
+	std::string firstWord1;
+	cout<< "////////////////////////////"<< endl;
+	string s;
+	while(getline(ss, s, ' ')) {
+		cout << "s: " << s << endl;
+	}
+	while (ss >> firstWord1)
+	{
+	    cout << firstWord1 << endl;
+	    ss.ignore(numeric_limits<streamsize>::max(), '\n');
+	}
+
 	return 0;
 }
 

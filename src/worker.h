@@ -10,6 +10,7 @@
 #include <fstream>
 #include <stdio.h>
 #include <sstream>
+#include <limits>
 
 #include <grpc++/grpc++.h>
 #include "masterworker.grpc.pb.h"
@@ -159,13 +160,15 @@ class CallData {
 
                 std::stringstream ss;
                 ss.str(buffer);
-                std::string firstWord;
-
-                while(ss >> firstWord) {
+                string line;
+                
+                // Doing it the old-school way:
+                while(getline(ss, line)) {
                     value.push_back("1");   // each line is one key-value pair
                                             // and we are making sure we are iterating over
                                             // same key
-                    key = firstWord;
+                    string dlim = " ";
+                    std::string key = line.substr(0, line.find(dlim));
                 }
 
                 in.close();
