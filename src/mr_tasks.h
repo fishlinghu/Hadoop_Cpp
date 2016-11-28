@@ -18,20 +18,26 @@ struct BaseMapperInternal {
 
 		/* NOW you can add below, data members and member functions as per the need of your implementation*/
 		string filename;
+		void input_filename(string s);
 };
 
 
 /* CS6210_TASK Implement this function */
-inline BaseMapperInternal::BaseMapperInternal() {
+inline BaseMapperInternal::BaseMapperInternal() 
+	{
+	filename = "NoChange";
+	}
 
-}
-
+inline BaseMapperInternal::input_filename(string s)
+	{
+	filename = s;
+	}
 
 /* CS6210_TASK Implement this function */
 inline void BaseMapperInternal::emit(const std::string& key, const std::string& val) {
 	std::cout << "Dummy emit by BaseMapperInternal: " << key << ", " << val << std::endl;
 	ofstream file;
-    file.open ("0", ios_base::out | ios_base::app); 
+    file.open (filename.c_str(), ios_base::out | ios_base::app); 
     // filename should be unique for each worker
     // so we should assign each worker with an unique ID
     // in that way, we dont need to communicate with the master to tell it the path of temporary file
@@ -57,20 +63,26 @@ struct BaseReducerInternal {
 
 		/* NOW you can add below, data members and member functions as per the need of your implementation*/
 		string filename;
+		void input_filename(string s);
 };
 
 
 /* CS6210_TASK Implement this function */
 inline BaseReducerInternal::BaseReducerInternal() {
-
+	filename = "NoChange";
 }
+
+inline BaseReducerInternal::input_filename(string s)
+	{
+	filename = s;
+	}
 
 
 /* CS6210_TASK Implement this function */
 inline void BaseReducerInternal::emit(const std::string& key, const std::string& val) {
 	std::cout << "Dummy emit by BaseReducerInternal: " << key << ", " << val << std::endl;
 	ofstream file;
-    file.open ("0", ios_base::out | ios_base::app); 
+    file.open (filename.c_str(), ios_base::out | ios_base::app); 
     file << key << " " << val << endl;
 
     file.close();
