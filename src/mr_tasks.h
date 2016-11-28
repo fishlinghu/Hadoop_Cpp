@@ -28,7 +28,7 @@ inline BaseMapperInternal::BaseMapperInternal()
 	filename = "NoChange";
 	}
 
-inline BaseMapperInternal::input_filename(string s)
+inline void BaseMapperInternal::input_filename(string s)
 	{
 	filename = s;
 	}
@@ -72,7 +72,7 @@ inline BaseReducerInternal::BaseReducerInternal() {
 	filename = "NoChange";
 }
 
-inline BaseReducerInternal::input_filename(string s)
+inline void BaseReducerInternal::input_filename(string s)
 	{
 	filename = s;
 	}

@@ -22,15 +22,6 @@ using grpc::ServerContext;
 using grpc::ServerCompletionQueue;
 using grpc::Status;
 
-/*GRPC-client specific*/
-// Discuss with cliff: I don't think we need to use this as
-// 'Worker' is behaving as 'server', however master may need to
-// may need to use this as 'master' is a client.
-// using grpc::Channel; // This channel is for the store to communicate to vendor
-// using grpc::ClientAsyncResponseReader;
-// using grpc::ClientContext;
-// using grpc::CompletionQueue;
-
 /*user .proto file specific*/
 using masterworker::jobAssign; // this is a rpc-service
 using masterworker::Master_to_Worker;
@@ -72,10 +63,7 @@ class CallData {
         // the one for this CallData. The instance will deallocate itself as
         // part of its FINISH state.
         new CallData(service_, cq_);
-////////////////
-            // BaseMapper* BM1;
-            // BM1->impl_->emit("hello", "1");
-////////////////        
+      
         // The actual processing.
         ///////////////////////////////////////////////////////////////////////////
         // use your own function here... 		
@@ -88,6 +76,7 @@ class CallData {
 	        	/*mapper code*/
 
         		auto mapper = get_mapper_from_task_factory("cs6210");
+                // mapper->impl_->filename = "foobar";
                 /*pass one line at a time from the input file+offset to this function*/
                 /*read it till the data-size; move pointer from offset till data-size*/
                 /*the file to open: query_.file_path() <--- oprn this file in read mode
@@ -153,7 +142,38 @@ class CallData {
                 /*have to understand: what is std::vector<std::string>*/
                 /*replace the 'dummy' with real key...*/
                 /*post it on piazza...if you don't understand*/
-				reducer->reduce("dummy"/*key*/, std::vector<std::string>({"1", "1"})/*value*/);	 
+                // open the output file and start reading it from appropriate offset
+                // both file name for opening the file and offset+data_size will be given
+                // by the master to reduce worker.
+                // this is the duty of 'master' to give appropriate offset and data-size at the entry/end 
+                // of each key encountered.
+                vector<string> value; // this holds the "1"s
+                string key; // this holds the key
+                // this is the cummilative sorted output file now.
+                ifstream in(query_.output_filename()); // expect it to be in the same directory
+                int data_size = query_.data_size();
+                int file_offset = query_.file_offset();
+                char* buffer = new char[data_size];
+                in.seekg(file_offset);
+                in.read(buffer, data_size);
+
+                std::stringstream ss;
+                ss.str(buffer);
+                std::string firstWord;
+
+                while(ss >> firstWord) {
+                    value.push_back("1");   // each line is one key-value pair
+                                            // and we are making sure we are iterating over
+                                            // same key
+                    key = firstWord;
+                }
+
+                in.close();
+                // instead of passing each entry...just pass the whole vector of string which has each entry as "1"
+                // number of entry is wrt how many times the key is repeated in the file.
+                reducer->reduce(key, value);
+                // examplar:
+				// reducer->reduce("dummy"/*key*/, std::vector<std::string>({"1", "1"})/*all the values for the given key!!!!*/);	 
 				/*set is_done*/       	
 				reply_.set_is_done(true);
 	        }
@@ -208,8 +228,6 @@ class Worker {
 
 		/* DON'T change this function's signature */
 		bool run();
-
-
 
 		/*Adding distructor*/
 		~Worker() {
@@ -282,7 +300,9 @@ bool Worker::run() {
 
     auto mapper1 = get_mapper_from_task_factory("cs6210");
     mapper1->impl_->emit("hello", "1");
-    mapper1->impl_->filename = "foobar";
+    // can access private member because class 'Worker' is friend 
+    // of class 'BaseMapper'
+    mapper1->impl_->filename = "foobar"; 
 
     // Proceed to the server's main loop.
     HandleRpcs();
