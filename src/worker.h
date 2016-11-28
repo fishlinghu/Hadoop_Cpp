@@ -86,16 +86,12 @@ class CallData {
 	        query_ = request_.masterquery(i);
 	        if (query_.map_reduce() == 1) { // mapper
 	        	/*mapper code*/
-                ///////////////////////
-                // BaseMapper* BM1; // cannot do it because it is NOT a friend
-                // BM1->impl_->emit("hello", "1");
-                ///////////////////////
+
         		auto mapper = get_mapper_from_task_factory("cs6210");
                 /*pass one line at a time from the input file+offset to this function*/
                 /*read it till the data-size; move pointer from offset till data-size*/
                 /*the file to open: query_.file_path() <--- oprn this file in read mode
                 with appropriate offset and data-size*/
-                /**/
 
                 ifstream infile(query_.file_path());
                 int data_size = query_.data_size();
@@ -209,16 +205,7 @@ class Worker {
 	public:
 		/* DON'T change the function signature of this constructor */
 		Worker(std::string ip_addr_port);
-    ////////////////// 
-        // void Worker_new(BaseMapper& BM) {
-        //     BM.impl_->emit("hello", "1");
-        //     return;
-        // }
-        // void Worker_new1(BaseMapperInternal& BMI) {
-        //     BMI.emit("hello", "1");
-        //     return;
-        // }
-    //////////////////
+
 		/* DON'T change this function's signature */
 		bool run();
 
@@ -293,11 +280,9 @@ bool Worker::run() {
     worker_ = builder.BuildAndStart();
     std::cout << "Server listening on " << server_address << std::endl;
 
-    //////////////////////////// You can set filename here////////////////////////
-    BaseMapper* BM1; // because it is a friend
-    BM1->impl_->emit("hello", "1");
-    BM1->impl_->filename = "output_filename";
-    ////////////////////////////
+    auto mapper1 = get_mapper_from_task_factory("cs6210");
+    mapper1->impl_->emit("hello", "1");
+    mapper1->impl_->filename = "foobar";
 
     // Proceed to the server's main loop.
     HandleRpcs();
