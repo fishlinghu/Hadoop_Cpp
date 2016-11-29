@@ -30,8 +30,7 @@ class Master {
 	public:
 		/* DON'T change the function signature of this constructor */
 		Master(const MapReduceSpec&, const std::vector<FileShard>&);
-		explicit Master(std::shared_ptr<Channel> channel)
-    		: stub_(jobAssign::NewStub(channel)) {}
+		
 		/* DON'T change this function's signature */
 		bool run();
 
@@ -39,40 +38,46 @@ class Master {
 		/* NOW you can add below, data members and member functions as per the need of your implementation*/
 		// store MapReduceSpec and FileShard here
 		//Master master;
-		bool AssignTask();
 		void sort_and_write();
 		bool check_end(vector<bool> &input);
-		std::unique_ptr<jobAssign::Stub> stub_;
+		
 		int num_of_worker;
 		int num_of_file_shard;
 		vector<string> map_output_filename_vec;
 		vector<string> worker_IP_vec;
 		vector<string> worker_port_vec;
 		vector<string> input_file_name;
+		vector<FileShard> file_shards_vec;
+		class MasterGRPC
+			{
+			public:
+				explicit MasterGRPC(std::shared_ptr<Channel> channel, Master* ptr)
+    				: stub_(jobAssign::NewStub(channel)) {caller = ptr;}
+    			bool AssignTask(int map_or_reduce);
+    			std::unique_ptr<jobAssign::Stub> stub_;
+    			Master* caller;
+			};
 };
-
 
 /* CS6210_TASK: This is all the information your master will get from the framework.
 	You can populate your other class data members here if you want */
 Master::Master(const MapReduceSpec& mr_spec, const std::vector<FileShard>& file_shards) 
 	{
 	num_of_worker = mr_spec.n_workers;
-	num_of_file_shard = 1;
-	int i = 0;
-	ostringstream sstream;
+	int i;
 
-	while(i < num_of_file_shard)
+	i = 0;
+	while(i < file_shards.size())
 		{	
-		sstream.str("");
-		sstream << i;
-		map_output_filename_vec.push_back( sstream.str() );
+		map_output_filename_vec.push_back( to_string(i) );
+		file_shards_vec.push_back( file_shards[i] );
 		++i;
 		}
 
 	i = 0;
 	while(i < num_of_worker)
 		{	
-		cout << mr_spec.ipaddr_port_list[i].ipaddr << endl;
+		// cout << mr_spec.ipaddr_port_list[i].ipaddr << endl;
 		worker_IP_vec.push_back( mr_spec.ipaddr_port_list[i].ipaddr );
 		worker_port_vec.push_back( mr_spec.ipaddr_port_list[i].ports );
 		++i;
@@ -86,7 +91,7 @@ Master::Master(const MapReduceSpec& mr_spec, const std::vector<FileShard>& file_
 		}
 	}
 
-bool Master::AssignTask()
+bool Master::MasterGRPC::AssignTask(int map_or_reduce) //1 for map, 2 for reduce
 	{
 	auto channel = grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials());
 	auto stub = masterworker::jobAssign::NewStub(channel);
@@ -94,12 +99,12 @@ bool Master::AssignTask()
 	Master_to_Worker request;
 	MasterQuery* info;
 	info = request.add_masterquery();
-    info->set_file_path( input_file_name[0] ); //<---the name of input file
-    info->set_file_offset( 10 );
-    info->set_map_reduce(1);
-    info->set_data_size( 100 ); //<--
+    info->set_file_path( caller->file_shards_vec[0].input_filename ); //<---the name of input file
+    info->set_file_offset( caller->file_shards_vec[0].offset );
+    info->set_map_reduce( map_or_reduce );
+    info->set_data_size( caller->file_shards_vec[0].dataSize ); //<--
     info->set_id_assigned_to_worker(1);
-    info->set_output_filename("0"); //<---the name of output file
+    info->set_output_filename(caller->map_output_filename_vec[0]); //<---the name of output file
     
     // Container for the data we expect from the server.
     Worker_to_Master reply;
@@ -247,7 +252,6 @@ void Master::sort_and_write()
 		//remove( map_output_filename_vec[i].c_str() );
 		++i;
 		}
-
 	fout.close();
 	return;
 
@@ -257,12 +261,13 @@ void Master::sort_and_write()
 bool Master::run() 
 	{
 	// Assign map tasks to worker
-	Master master(grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials()));
-	bool flag = master.AssignTask();
+	MasterGRPC master(grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials()), this);
+	bool flag = master.AssignTask(1);
 	cout << "flag: " << flag <<endl;
 	// Collect the result
 	sort_and_write();
 	// Assign reduce tasks to worker
+	flag = master.AssignTask(2);
 	// Collect the result
 	return true;
 	}

@@ -18,7 +18,7 @@ struct BaseMapperInternal {
 
 		/* NOW you can add below, data members and member functions as per the need of your implementation*/
 		string filename;
-		void input_filename(string s);
+		//void input_filename(string s);
 };
 
 
@@ -28,10 +28,10 @@ inline BaseMapperInternal::BaseMapperInternal()
 	filename = "NoChange";
 	}
 
-inline void BaseMapperInternal::input_filename(string s)
+/*inline void BaseMapperInternal::input_filename(string s)
 	{
 	filename = s;
-	}
+	}*/
 
 /* CS6210_TASK Implement this function */
 inline void BaseMapperInternal::emit(const std::string& key, const std::string& val) {
@@ -63,7 +63,7 @@ struct BaseReducerInternal {
 
 		/* NOW you can add below, data members and member functions as per the need of your implementation*/
 		string filename;
-		void input_filename(string s);
+		// void input_filename(string s);
 };
 
 
@@ -72,10 +72,10 @@ inline BaseReducerInternal::BaseReducerInternal() {
 	filename = "NoChange";
 }
 
-inline void BaseReducerInternal::input_filename(string s)
+/*inline void BaseReducerInternal::input_filename(string s)
 	{
 	filename = s;
-	}
+	}*/
 
 
 /* CS6210_TASK Implement this function */

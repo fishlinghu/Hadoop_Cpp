@@ -34,20 +34,110 @@ using namespace std;
 extern std::shared_ptr<BaseMapper> get_mapper_from_task_factory(const std::string& user_id);
 extern std::shared_ptr<BaseReducer> get_reducer_from_task_factory(const std::string& user_id);
 
-/* Creating a new CallData class and initantiating its object inside Worker class */
-////////////////////////////////////////////////////////////
-class CallData {
-   public:
-    // Take in the "service" instance (in this case representing an asynchronous
-    // server) and the completion queue "cq" used for asynchronous communication
-    // with the gRPC runtime.
-    CallData(jobAssign::AsyncService* service, ServerCompletionQueue* cq)
-        : service_(service), cq_(cq), responder_(&ctx_), status_(CREATE) {
-      // Invoke the serving logic right away.
-      Proceed();
+
+/* CS6210_TASK: Handle all the task a Worker is supposed to do.
+	This is a big task for this project, will test your understanding of map reduce */
+class Worker {
+
+	public:
+		/* DON'T change the function signature of this constructor */
+		Worker(std::string ip_addr_port);
+
+		/* DON'T change this function's signature */
+		bool run();
+
+		/*Adding distructor*/
+		~Worker() {
+			worker_->Shutdown();
+			// Always shutdown the completion queue after the server.
+			cq_->Shutdown();
+            delete obj_CallData;
+		}
+        void set_mapper_output_filename(shared_ptr<BaseMapper> mapper, string s);
+        void set_reducer_output_filename(shared_ptr<BaseReducer> reducer, string s);
+        class CallData
+            {
+            public:
+                // Take in the "service" instance (in this case representing an asynchronous
+                // server) and the completion queue "cq" used for asynchronous communication
+                // with the gRPC runtime.
+                CallData(jobAssign::AsyncService* service, ServerCompletionQueue* cq)
+                    : service_(service), cq_(cq), responder_(&ctx_), status_(CREATE) {
+                  // Invoke the serving logic right away.
+                  Proceed();
+                }
+                Worker *parent;
+                void Proceed();
+            private:
+                // The means of communication with the gRPC runtime for an asynchronous
+                // server.
+                jobAssign::AsyncService* service_;
+                // The producer-consumer queue where for asynchronous server notifications.
+                ServerCompletionQueue* cq_;
+                // Context for the rpc, allowing to tweak aspects of it such as the use
+                // of compression, authentication, as well as to send metadata back to the
+                // client.
+                ServerContext ctx_;
+
+                // What we get from the client.
+                Master_to_Worker request_;
+                // What we send back to the client.
+                Worker_to_Master reply_;
+                // holds the masterQuery
+                MasterQuery query_;
+                // The means to get back to the client.
+                ServerAsyncResponseWriter<Worker_to_Master> responder_;
+
+                // Let's implement a tiny state machine with the following states.
+                enum CallStatus { CREATE, PROCESS, FINISH };
+                CallStatus status_;  // The current serving state.
+            };
+
+
+	private: // for functions
+	  void HandleRpcs();
+	private:
+		/* NOW you can add below, data members and member functions as per the need of your implementation*/
+		string worker_ip_addr;
+		std::unique_ptr<ServerCompletionQueue> cq_;
+		jobAssign::AsyncService service_;
+		std::unique_ptr<Server> worker_;
+		/*have an object of CallData here..*/
+		CallData* obj_CallData;
+
+};
+
+void Worker::set_mapper_output_filename(shared_ptr<BaseMapper> mapper, string s)
+    {
+    mapper->impl_->filename = s;
     }
 
-    void Proceed() {
+void Worker::set_reducer_output_filename(shared_ptr<BaseReducer> reducer, string s)
+    {
+    reducer->impl_->filename = s;
+    }
+
+void Worker::HandleRpcs()
+    {
+    // Spawn a new CallData instance to serve new clients.
+    obj_CallData = new CallData(&service_, cq_.get());
+    obj_CallData->parent = this;
+    void* tag;  // uniquely identifies a request.
+    bool ok;
+    while (true) 
+        {
+        // Block waiting to read the next event from the completion queue. The
+        // event is uniquely identified by its tag, which in this case is the
+        // memory address of a CallData instance.
+        // The return value of Next should always be checked. This return value
+        // tells us whether there is any kind of event or cq_ is shutting down.
+        GPR_ASSERT(cq_->Next(&tag, &ok));
+        GPR_ASSERT(ok);
+        static_cast<CallData*>(tag)->Proceed();
+        }
+    }
+
+void Worker::CallData::Proceed() {
       if (status_ == CREATE) {
         // Make this instance progress to the PROCESS state.
         status_ = PROCESS;
@@ -67,16 +157,16 @@ class CallData {
       
         // The actual processing.
         ///////////////////////////////////////////////////////////////////////////
-        // use your own function here... 		
+        // use your own function here...        
         unsigned int mapR;
         int size = request_.masterquery_size();
         for (int i = 0; i < size; ++i) // parse through all the queries in the queue
         {
-	        query_ = request_.masterquery(i);
-	        if (query_.map_reduce() == 1) { // mapper
-	        	/*mapper code*/
+            query_ = request_.masterquery(i);
+            if (query_.map_reduce() == 1) { // mapper
+                /*mapper code*/
 
-        		auto mapper = get_mapper_from_task_factory("cs6210");
+                auto mapper = get_mapper_from_task_factory("cs6210");
                 // mapper->impl_->filename = "foobar";
                 /*pass one line at a time from the input file+offset to this function*/
                 /*read it till the data-size; move pointer from offset till data-size*/
@@ -95,8 +185,12 @@ class CallData {
                 ss.str(buffer); // this will convert it into buffer
                 std::string line;
 
+                string out_filename_for_master = query_.output_filename();
+                string mapper_output_filename = out_filename_for_master + "_tmp";
+                parent->set_mapper_output_filename(mapper, mapper_output_filename);
+
                 while(std::getline(ss, line))
-    				mapper->map(line); // this will call the emit() function internally
+                    mapper->map(line); // this will call the emit() function internally
                                        // for a given line
                 
                 infile.close();
@@ -105,11 +199,10 @@ class CallData {
                 // in the end we want to replace the unsorted file with the sorted file of the 
                 // same name.
                 vector<string> names;
-                string in_filename(query_.output_filename());
-                string out_filename = in_filename + "_tmp";
-                ifstream in(in_filename); // file-pointer associated with input file
+                ifstream in(mapper_output_filename.c_str()); // file-pointer associated with input file
                 fstream out; // file-pointer associated with output file
-                out.open(out_filename, fstream::out); // if not present create it.
+                out.open(out_filename_for_master.c_str(), fstream::out); // if not present create it.
+                //out.open("WTF", fstream::out);
                 if(!in.is_open())
                     cout << "Unable to open file" << endl;
                 
@@ -125,19 +218,20 @@ class CallData {
                 // close the output and file
                 out.close();
                 in.close();
+                //remove( mapper_output_filename.c_str() );
                 // now remove the input file and rename output file
                 // by input file
-                int result= rename( out_filename.c_str() , in_filename.c_str() );
+                /*int result= rename( out_filename.c_str() , in_filename.c_str() );
                 if ( result == 0 )
                     puts ( "File successfully renamed" );
                 else
-                    perror( "Error renaming file" );    
+                    perror( "Error renaming file" );    */
                 /////////////////////////////////////////////////////////////
-				/*set is_done*/
-				reply_.set_is_done(true);
-	        } else if (query_.map_reduce() == 2) { // reducer code
-	        	/*reducer code*/
-				auto reducer = get_reducer_from_task_factory("cs6210");
+                /*set is_done*/
+                reply_.set_is_done(true);
+            } else if (query_.map_reduce() == 2) { // reducer code
+                /*reducer code*/
+                auto reducer = get_reducer_from_task_factory("cs6210");
                 /*todo.....
                 open a file; read a file and pass the parameter(key) from the file to the reducer*/
                 /*have to understand: what is std::vector<std::string>*/
@@ -150,36 +244,31 @@ class CallData {
                 // of each key encountered.
                 vector<string> value; // this holds the "1"s
                 string key; // this holds the key
+                string tempStr;
                 // this is the cummilative sorted output file now.
-                ifstream in(query_.output_filename()); // expect it to be in the same directory
+                ifstream fin(query_.output_filename()); // expect it to be in the same directory
                 int data_size = query_.data_size();
                 int file_offset = query_.file_offset();
-                char* buffer = new char[data_size];
-                in.seekg(file_offset);
-                in.read(buffer, data_size);
-
-                std::stringstream ss;
-                ss.str(buffer);
-                string line;
                 
-                // Doing it the old-school way:
-                while(getline(ss, line)) {
-                    value.push_back("1");   // each line is one key-value pair
-                                            // and we are making sure we are iterating over
-                                            // same key
-                    string dlim = " ";
-                    std::string key = line.substr(0, line.find(dlim));
-                }
+                fin >> key;
+                while( fin >> tempStr )
+                    {   
+                    value.push_back( tempStr );
+                    fin >> tempStr;
+                    }
 
-                in.close();
+                fin.close();
+
+                parent->set_reducer_output_filename(reducer, query_.output_filename()+"_reducer");
+
                 // instead of passing each entry...just pass the whole vector of string which has each entry as "1"
                 // number of entry is wrt how many times the key is repeated in the file.
                 reducer->reduce(key, value);
                 // examplar:
-				// reducer->reduce("dummy"/*key*/, std::vector<std::string>({"1", "1"})/*all the values for the given key!!!!*/);	 
-				/*set is_done*/       	
-				reply_.set_is_done(true);
-	        }
+                // reducer->reduce("dummy"/*key*/, std::vector<std::string>({"1", "1"})/*all the values for the given key!!!!*/);    
+                /*set is_done*/         
+                reply_.set_is_done(true);
+            }
         }
             ////////////////////////////////////////////////////////////////////////////
 
@@ -194,82 +283,6 @@ class CallData {
         delete this;
       }
     }
-
-   private:
-    // The means of communication with the gRPC runtime for an asynchronous
-    // server.
-    jobAssign::AsyncService* service_;
-    // The producer-consumer queue where for asynchronous server notifications.
-    ServerCompletionQueue* cq_;
-    // Context for the rpc, allowing to tweak aspects of it such as the use
-    // of compression, authentication, as well as to send metadata back to the
-    // client.
-    ServerContext ctx_;
-
-    // What we get from the client.
-    Master_to_Worker request_;
-    // What we send back to the client.
-    Worker_to_Master reply_;
-    // holds the masterQuery
-    MasterQuery query_;
-    // The means to get back to the client.
-    ServerAsyncResponseWriter<Worker_to_Master> responder_;
-
-    // Let's implement a tiny state machine with the following states.
-    enum CallStatus { CREATE, PROCESS, FINISH };
-    CallStatus status_;  // The current serving state.
-  };
-/////////////////////////////////////////////////////
-
-/* CS6210_TASK: Handle all the task a Worker is supposed to do.
-	This is a big task for this project, will test your understanding of map reduce */
-class Worker {
-
-	public:
-		/* DON'T change the function signature of this constructor */
-		Worker(std::string ip_addr_port);
-
-		/* DON'T change this function's signature */
-		bool run();
-
-		/*Adding distructor*/
-		~Worker() {
-			worker_->Shutdown();
-			// Always shutdown the completion queue after the server.
-			cq_->Shutdown();
-		}
-
-
-	private: // for functions
-	  void HandleRpcs() {
-	    // Spawn a new CallData instance to serve new clients.
-	    obj_CallData = new CallData(&service_, cq_.get());
-	    void* tag;  // uniquely identifies a request.
-	    bool ok;
-        // BaseMapper& bm;
-        // // bm.impl_->emit("hello", "1");
-        // Worker_new(bm);
-	    while (true) {
-	      // Block waiting to read the next event from the completion queue. The
-	      // event is uniquely identified by its tag, which in this case is the
-	      // memory address of a CallData instance.
-	      // The return value of Next should always be checked. This return value
-	      // tells us whether there is any kind of event or cq_ is shutting down.
-	      GPR_ASSERT(cq_->Next(&tag, &ok));
-	      GPR_ASSERT(ok);
-	      static_cast<CallData*>(tag)->Proceed();
-	    }
-	  }
-	private:
-		/* NOW you can add below, data members and member functions as per the need of your implementation*/
-		string worker_ip_addr;
-		std::unique_ptr<ServerCompletionQueue> cq_;
-		jobAssign::AsyncService service_;
-		std::unique_ptr<Server> worker_;
-		/*have an object of CallData here..*/
-		CallData* obj_CallData;
-
-};
 
 
 /* CS6210_TASK: ip_addr_port is the only information you get when started.
@@ -300,12 +313,6 @@ bool Worker::run() {
     // Finally assemble the server.
     worker_ = builder.BuildAndStart();
     std::cout << "Server listening on " << server_address << std::endl;
-
-    auto mapper1 = get_mapper_from_task_factory("cs6210");
-    mapper1->impl_->emit("hello", "1");
-    // can access private member because class 'Worker' is friend 
-    // of class 'BaseMapper'
-    mapper1->impl_->filename = "foobar"; 
 
     // Proceed to the server's main loop.
     HandleRpcs();
