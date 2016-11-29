@@ -72,6 +72,7 @@ Master::Master(const MapReduceSpec& mr_spec, const std::vector<FileShard>& file_
 	int i;
 
 	cout << "# of file shards: " << file_shards.size() << endl;
+	num_of_file_shard = file_shards.size();
 
 	i = 0;
 	while(i < file_shards.size())
@@ -143,6 +144,7 @@ bool Master::MasterGRPC::AssignTask(int map_or_reduce, int task_id) //1 for map,
     // The return value of Next should always be checked. This return value
     // tells us whether there is any kind of event or the cq_ is shutting down.
     GPR_ASSERT(cq.Next(&got_tag, &ok));
+    // cq.AsyncNext(&got_tag, &ok, std::chrono::system_clock::now()+std::chrono::seconds(2));
 
     // Verify that the result from "cq" corresponds, by its tag, our previous
     // request.
@@ -192,20 +194,24 @@ bool Master::check_end(vector<bool> &input)
 	{
 	int i = 0;
 	while(i < input.size())
-		{	
-		if(input[i] == true)
-			return true;
+		{
+		//cout << input[i] << endl;
+		if(input[i] == false)
+			{
+			//cout << "TRUE" << endl;
+			return false;
+			}
 		++i;
 		}
-	return false;
+	return true;
 	}
 
 void Master::sort_and_write()
 	{
 	// merge multiple files from mapper into one big file
-	ofstream fout("output");//<--- input file for reducer
+	ofstream fout("map_phase_output");//<--- input file for reducer
 	// add offset in the future
-
+	//cout << num_of_file_shard << "!!" << endl;
 	vector <ifstream *> ifs;
 
 	ifstream *ptr;
@@ -232,6 +238,7 @@ void Master::sort_and_write()
 			}
 		else
 			{	
+			cout << "Cannot read file: " << i << endl;
 			fileEnd[i] = true;
 			}
 		++i;
@@ -240,8 +247,10 @@ void Master::sort_and_write()
 	string tempStr;
 	string oldStr;
 	int idx;
-	while( check_end( fileEnd ) )
+	//cout << check_end( fileEnd ) << endl;
+	while( check_end( fileEnd ) == false )
 		{	
+		//cout << "HI" << endl;
 		// chose the file to read from by comparing the strings
 		tempStr = "";
 		i = 0;
@@ -278,6 +287,7 @@ void Master::sort_and_write()
 			}
 		// else, the buf[idx] contains the next word we are going to read from ifs[idx]
 		}
+	//cout << "End loop" << endl;
 
 	i = 0;
 	while(i < num_of_file_shard)
