@@ -42,9 +42,23 @@ class Master {
 			public:
 				explicit MasterGRPC(std::shared_ptr<Channel> channel, Master* ptr)
     				: stub_(jobAssign::NewStub(channel)) {caller = ptr;}
-    			bool AssignTask(int map_or_reduce, int task_id);
+    			void AssignTask(int map_or_reduce, int task_id);
+    			bool Check_result();
     			std::unique_ptr<jobAssign::Stub> stub_;
     			Master* caller;
+    			// Container for the data we expect from the server.
+			    Worker_to_Master reply;
+
+			    // Context for the client. It could be used to convey extra information to
+			    // the server and/or tweak certain RPC behaviors.
+				ClientContext context;
+
+			    // The producer-consumer queue we use to communicate asynchronously with the
+			    // gRPC runtime.
+			    CompletionQueue cq;
+
+				// Storage for the status of the RPC upon completion.
+			    Status status;
 			};
 
 		vector<MasterGRPC*> connection_vec;
@@ -99,7 +113,21 @@ Master::Master(const MapReduceSpec& mr_spec, const std::vector<FileShard>& file_
 		}
 	}
 
-bool Master::MasterGRPC::AssignTask(int map_or_reduce, int task_id) //1 for map, 2 for reduce
+void Master::hi_worker()
+	{
+	MasterGRPC* obj;
+	string addr;
+	int i = 0;
+	while(i < num_of_worker)
+		{
+		addr = worker_IP_vec[i] + ":" + worker_port_vec[i];
+		obj = new MasterGRPC( grpc::CreateChannel(addr, grpc::InsecureChannelCredentials()), this );
+		connection_vec.push_back( obj );
+		++i;
+		}
+	}
+
+void Master::MasterGRPC::AssignTask(int map_or_reduce, int task_id) //1 for map, 2 for reduce
 	{
 	//auto channel = grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials());
 	//auto stub = masterworker::jobAssign::NewStub(channel);
@@ -115,19 +143,6 @@ bool Master::MasterGRPC::AssignTask(int map_or_reduce, int task_id) //1 for map,
     info->set_id_assigned_to_worker(1);
     info->set_output_filename(caller->map_output_filename_vec[task_id]); //<---the name of output file
     
-    // Container for the data we expect from the server.
-    Worker_to_Master reply;
-
-    // Context for the client. It could be used to convey extra information to
-    // the server and/or tweak certain RPC behaviors.
-    ClientContext context;
-
-    // The producer-consumer queue we use to communicate asynchronously with the
-    // gRPC runtime.
-    CompletionQueue cq;
-
-    // Storage for the status of the RPC upon completion.
-    Status status;
 
     // stub_->AsyncSayHello() performs the RPC call, returning an instance we
     // store in "rpc". Because we are using the asynchronous API, we need to
@@ -138,6 +153,10 @@ bool Master::MasterGRPC::AssignTask(int map_or_reduce, int task_id) //1 for map,
     // server's response; "status" with the indication of whether the operation
     // was successful. Tag the request with the integer 1.
     rpc->Finish(&reply, &status, (void*)1);
+	}
+
+bool Master::MasterGRPC::Check_result()
+	{
     void* got_tag;
     bool ok = false;
     // Block until the next result is available in the completion queue "cq".
@@ -164,29 +183,20 @@ bool Master::MasterGRPC::AssignTask(int map_or_reduce, int task_id) //1 for map,
         }
 	}
 
-void Master::hi_worker()
-	{
-	MasterGRPC* obj;
-	string addr;
-	int i = 0;
-	while(i < num_of_worker)
-		{
-		addr = worker_IP_vec[i] + ":" + worker_port_vec[i];
-		obj = new MasterGRPC( grpc::CreateChannel(addr, grpc::InsecureChannelCredentials()), this );
-		connection_vec.push_back( obj );
-		++i;
-		}
-	}
-
 void Master::run_map()
 	{
 	int i = 0;
 	bool flag;
 	while(i < num_of_worker)
 		{
-		flag = connection_vec[i]->AssignTask(1, i);
-		cout << "i:" << i << ", " << flag << endl;
+		connection_vec[i]->AssignTask(1, i);
 		++i;
+		}
+	i = 0;
+	while(i < num_of_worker)
+		{	
+		flag = connection_vec[i]->Check_result();
+		cout << "i:" << i << ", " << flag << endl;
 		}
 	}
 
