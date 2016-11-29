@@ -37,7 +37,20 @@ class Master {
 	private:
 		/* NOW you can add below, data members and member functions as per the need of your implementation*/
 		// store MapReduceSpec and FileShard here
-		//Master master;
+		class MasterGRPC
+			{
+			public:
+				explicit MasterGRPC(std::shared_ptr<Channel> channel, Master* ptr)
+    				: stub_(jobAssign::NewStub(channel)) {caller = ptr;}
+    			bool AssignTask(int map_or_reduce, int task_id);
+    			std::unique_ptr<jobAssign::Stub> stub_;
+    			Master* caller;
+			};
+
+		vector<MasterGRPC*> connection_vec;
+
+		void hi_worker();
+		void run_map();
 		void sort_and_write();
 		bool check_end(vector<bool> &input);
 		
@@ -48,15 +61,7 @@ class Master {
 		vector<string> worker_port_vec;
 		vector<string> input_file_name;
 		vector<FileShard> file_shards_vec;
-		class MasterGRPC
-			{
-			public:
-				explicit MasterGRPC(std::shared_ptr<Channel> channel, Master* ptr)
-    				: stub_(jobAssign::NewStub(channel)) {caller = ptr;}
-    			bool AssignTask(int map_or_reduce);
-    			std::unique_ptr<jobAssign::Stub> stub_;
-    			Master* caller;
-			};
+		
 };
 
 /* CS6210_TASK: This is all the information your master will get from the framework.
@@ -65,6 +70,8 @@ Master::Master(const MapReduceSpec& mr_spec, const std::vector<FileShard>& file_
 	{
 	num_of_worker = mr_spec.n_workers;
 	int i;
+
+	cout << "# of file shards: " << file_shards.size() << endl;
 
 	i = 0;
 	while(i < file_shards.size())
@@ -91,20 +98,21 @@ Master::Master(const MapReduceSpec& mr_spec, const std::vector<FileShard>& file_
 		}
 	}
 
-bool Master::MasterGRPC::AssignTask(int map_or_reduce) //1 for map, 2 for reduce
+bool Master::MasterGRPC::AssignTask(int map_or_reduce, int task_id) //1 for map, 2 for reduce
 	{
-	auto channel = grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials());
-	auto stub = masterworker::jobAssign::NewStub(channel);
+	//auto channel = grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials());
+	//auto stub = masterworker::jobAssign::NewStub(channel);
 	
+	// Num of request = num of file shards
 	Master_to_Worker request;
 	MasterQuery* info;
 	info = request.add_masterquery();
-    info->set_file_path( caller->file_shards_vec[0].input_filename ); //<---the name of input file
-    info->set_file_offset( caller->file_shards_vec[0].offset );
+    info->set_file_path( caller->file_shards_vec[task_id].input_filename ); //<---the name of input file
+    info->set_file_offset( caller->file_shards_vec[task_id].offset );
     info->set_map_reduce( map_or_reduce );
-    info->set_data_size( caller->file_shards_vec[0].dataSize ); //<--
+    info->set_data_size( caller->file_shards_vec[task_id].dataSize ); //<--
     info->set_id_assigned_to_worker(1);
-    info->set_output_filename(caller->map_output_filename_vec[0]); //<---the name of output file
+    info->set_output_filename(caller->map_output_filename_vec[task_id]); //<---the name of output file
     
     // Container for the data we expect from the server.
     Worker_to_Master reply;
@@ -152,6 +160,32 @@ bool Master::MasterGRPC::AssignTask(int map_or_reduce) //1 for map, 2 for reduce
         {
         return false;
         }
+	}
+
+void Master::hi_worker()
+	{
+	MasterGRPC* obj;
+	string addr;
+	int i = 0;
+	while(i < num_of_worker)
+		{
+		addr = worker_IP_vec[i] + ":" + worker_port_vec[i];
+		obj = new MasterGRPC( grpc::CreateChannel(addr, grpc::InsecureChannelCredentials()), this );
+		connection_vec.push_back( obj );
+		++i;
+		}
+	}
+
+void Master::run_map()
+	{
+	int i = 0;
+	bool flag;
+	while(i < num_of_worker)
+		{
+		flag = connection_vec[i]->AssignTask(1, i);
+		cout << "i:" << i << ", " << flag << endl;
+		++i;
+		}
 	}
 
 bool Master::check_end(vector<bool> &input)
@@ -260,14 +294,20 @@ void Master::sort_and_write()
 /* CS6210_TASK: Here you go. once this function is called you will complete whole map reduce task and return true if succeeded */
 bool Master::run() 
 	{
-	// Assign map tasks to worker
-	MasterGRPC master(grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials()), this);
-	bool flag = master.AssignTask(1);
-	cout << "flag: " << flag <<endl;
+	// Establish connection between master and many workers
+	hi_worker();
+	//MasterGRPC master(grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials()), this);
+	//MasterGRPC master2(grpc::CreateChannel("localhost:50052", grpc::InsecureChannelCredentials()), this);
+	//bool flag1 = master.AssignTask(1, 0);
+	//bool flag2 = master.AssignTask(1, 1);
+	//cout << "flag: " << flag1 <<endl;
+	//cout << "flag: " << flag2 <<endl;
+	run_map();
 	// Collect the result
 	sort_and_write();
 	// Assign reduce tasks to worker
-	flag = master.AssignTask(2);
+	//flag1 = master.AssignTask(2, 0);
+	//flag2 = master.AssignTask(2, 1);
 	// Collect the result
 	return true;
 	}
