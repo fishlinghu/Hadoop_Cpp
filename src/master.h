@@ -158,7 +158,7 @@ void Master::MasterGRPC::AssignTask(int map_or_reduce, int task_id) //1 for map,
     // hold on to the "rpc" instance in order to get updates on the ongoing RPC.
     //rpc = move( stub_->AsyncAssignTask(&context, request, &cq) );
     // *context = nullptr;
-    contextPtr = new ClientContext();
+    contextPtr = new ClientContext(); // remember to delete it somewhere
     std::unique_ptr<ClientAsyncResponseReader<Worker_to_Master> > rpc( stub_->AsyncAssignTask(contextPtr, request, &cq) );
 
     // Request that, upon completion of the RPC, "reply" be updated with the
@@ -197,7 +197,7 @@ bool Master::MasterGRPC::Check_result()
         }
 	}
 
-void Master::run_map()
+/*void Master::run_map()
 	{
 	int i = 0;
 	bool flag;
@@ -215,6 +215,61 @@ void Master::run_map()
 		cout << "i:" << i << ", " << flag << endl;
 		delete connection_vec[i]->contextPtr;
 		++i;
+		}
+	}*/
+
+void Master::run_map()
+	{
+	vector<bool> worker_busy(num_of_worker, false); // record which worker is busy / available for a task
+
+	int i, task_finished = 0;
+
+	int task_remain = num_of_file_shard - 1; // -1 because it is used as the index which starts from 0
+	while( task_remain >= 0 )
+		{	
+		i = 0;
+		while(i < num_of_worker)
+			{	
+			if(worker_busy[i] == false)
+				{	
+				connection_vec[i]->AssignTask(1, task_remain);
+				worker_busy[i] = true;
+				--task_remain;
+				}
+			++i;
+			}
+		// now all workers are busy, or all tasks are assigned
+		i = 0;
+		while(i < num_of_worker)
+			{	
+			if( worker_busy[i] == true )
+				{	
+				if( connection_vec[i]->Check_result() == true )
+					{	
+					// worker i is available for a nex task
+					worker_busy[i] = false;
+					++task_finished;
+					}
+				}
+			++i;
+			}
+		}
+
+	while(task_finished < num_of_file_shard)
+		{	
+		i = 0;
+		while(i < num_of_worker)
+			{	
+			if( worker_busy[i] == true )
+				{	
+				if( connection_vec[i]->Check_result() == true )
+					{
+					worker_busy[i] = false;
+					++task_finished;	
+					}
+				}
+			++i;
+			}
 		}
 	}
 
