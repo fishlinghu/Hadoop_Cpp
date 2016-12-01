@@ -45,6 +45,8 @@ class Master {
     			void AssignTask(int map_or_reduce, int task_id);
     			bool Check_result();
     			std::unique_ptr<jobAssign::Stub> stub_;
+    			// std::unique_ptr<ClientAsyncResponseReader<Worker_to_Master> > rpc;
+
     			Master* caller;
     			// Container for the data we expect from the server.
 			    Worker_to_Master reply;
@@ -70,10 +72,15 @@ class Master {
 		
 		int num_of_worker;
 		int num_of_file_shard;
+
 		vector<string> map_output_filename_vec;
+		
 		vector<string> worker_IP_vec;
 		vector<string> worker_port_vec;
 		vector<string> input_file_name;
+
+		vector<string> reducer_input_filename_vec; // populate this vector in sort_and_write()
+		
 		vector<FileShard> file_shards_vec;
 		
 };
@@ -147,7 +154,8 @@ void Master::MasterGRPC::AssignTask(int map_or_reduce, int task_id) //1 for map,
     // stub_->AsyncSayHello() performs the RPC call, returning an instance we
     // store in "rpc". Because we are using the asynchronous API, we need to
     // hold on to the "rpc" instance in order to get updates on the ongoing RPC.
-    std::unique_ptr<ClientAsyncResponseReader<Worker_to_Master> > rpc(stub_->AsyncAssignTask(&context, request, &cq));
+    //rpc = move( stub_->AsyncAssignTask(&context, request, &cq) );
+    std::unique_ptr<ClientAsyncResponseReader<Worker_to_Master> > rpc( stub_->AsyncAssignTask(&context, request, &cq) );
 
     // Request that, upon completion of the RPC, "reply" be updated with the
     // server's response; "status" with the indication of whether the operation
@@ -162,8 +170,9 @@ bool Master::MasterGRPC::Check_result()
     // Block until the next result is available in the completion queue "cq".
     // The return value of Next should always be checked. This return value
     // tells us whether there is any kind of event or the cq_ is shutting down.
-    GPR_ASSERT(cq.Next(&got_tag, &ok));
-    // cq.AsyncNext(&got_tag, &ok, std::chrono::system_clock::now()+std::chrono::seconds(2));
+    //GPR_ASSERT(cq.Next(&got_tag, &ok));
+    cq.Next(&got_tag, &ok);
+    //cq.AsyncNext(&got_tag, &ok, std::chrono::system_clock::now()+std::chrono::seconds(2));
 
     // Verify that the result from "cq" corresponds, by its tag, our previous
     // request.
@@ -190,6 +199,8 @@ void Master::run_map()
 	while(i < num_of_worker)
 		{
 		connection_vec[i]->AssignTask(1, i);
+		//flag = connection_vec[i]->Check_result();
+		//cout << "i:" << i << ", " << flag << endl;
 		++i;
 		}
 	i = 0;
@@ -197,6 +208,7 @@ void Master::run_map()
 		{	
 		flag = connection_vec[i]->Check_result();
 		cout << "i:" << i << ", " << flag << endl;
+		++i;
 		}
 	}
 

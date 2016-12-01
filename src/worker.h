@@ -277,6 +277,7 @@ void Worker::CallData::Proceed() {
         // the event.
         status_ = FINISH;
         responder_.Finish(reply_, Status::OK, this);
+        cout << parent->worker_ip_addr << " finished. " << endl;
       } else {
         GPR_ASSERT(status_ == FINISH);
         // Once in the FINISH state, deallocate ourselves (CallData).
@@ -298,7 +299,7 @@ Worker::Worker(std::string ip_addr_port) { // "Constructor"
 	so you can manipulate them however you want when running map/reduce tasks*/
 bool Worker::run() {
 
-	cout << "Coming from Worker::run()" << endl;
+	//cout << "Coming from Worker::run()" << endl;
 	std::string server_address(worker_ip_addr);
 
     ServerBuilder builder;

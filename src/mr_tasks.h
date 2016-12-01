@@ -35,7 +35,6 @@ inline BaseMapperInternal::BaseMapperInternal()
 
 /* CS6210_TASK Implement this function */
 inline void BaseMapperInternal::emit(const std::string& key, const std::string& val) {
-	std::cout << "Dummy emit by BaseMapperInternal: " << key << ", " << val << std::endl;
 	ofstream file;
     file.open (filename.c_str(), ios_base::out | ios_base::app); 
     // filename should be unique for each worker
@@ -80,7 +79,6 @@ inline BaseReducerInternal::BaseReducerInternal() {
 
 /* CS6210_TASK Implement this function */
 inline void BaseReducerInternal::emit(const std::string& key, const std::string& val) {
-	std::cout << "Dummy emit by BaseReducerInternal: " << key << ", " << val << std::endl;
 	ofstream file;
     file.open (filename.c_str(), ios_base::out | ios_base::app); 
     file << key << " " << val << endl;
