@@ -178,15 +178,16 @@ bool Master::MasterGRPC::Check_result()
     // tells us whether there is any kind of event or the cq_ is shutting down.
     //GPR_ASSERT(cq.Next(&got_tag, &ok));
     
-    cq.Next(&got_tag, &ok);
-    //cq.AsyncNext(&got_tag, &ok, std::chrono::system_clock::now()+std::chrono::seconds(3));
+    //cq.Next(&got_tag, &ok);
+    cq.AsyncNext(&got_tag, &ok, std::chrono::system_clock::now()+std::chrono::seconds(3));
 
     // Verify that the result from "cq" corresponds, by its tag, our previous
     // request.
-    GPR_ASSERT(got_tag == (void*)1);
+    //GPR_ASSERT(got_tag == (void*)1);
+    
     // ... and that the request was completed successfully. Note that "ok"
     // corresponds solely to the request for updates introduced by Finish().
-    GPR_ASSERT(ok);
+    //GPR_ASSERT(ok);
 
     // Act upon the status of the actual RPC.
     if (status.ok()) 
@@ -288,6 +289,67 @@ void Master::run_reduce()
 	cout << "Reduce job: " << connection_vec[i]->Check_result() << endl;
 	}
 
+/*bool Master::run_reduce()
+	{
+	vector<bool> worker_busy(num_of_worker, false); // record which worker is busy / available for a task
+
+	int i, task_finished = 0;
+
+	int task_remain = reducer_input_filename_vec.size() - 1; // -1 because it is used as the index which starts from 0
+	while( task_remain >= 0 )
+		{	
+		i = 0;
+		while(i < num_of_worker && task_remain >= 0)
+			{	
+			cout << "Check if worker " << i << " can accept the task." << endl;
+			if(worker_busy[i] == false)
+				{
+				cout << "Worker " << i << " is assigned with task " << task_remain << endl;
+				connection_vec[i]->AssignTask(1, task_remain);
+				worker_busy[i] = true;
+				--task_remain;
+				}
+			cout << "ENDIF" << endl;
+			++i;
+			}
+		cout << "Task remain: " << task_remain << endl;
+		// now all workers are busy, or all tasks are assigned
+		i = 0;
+		while(i < num_of_worker)
+			{	
+			if( worker_busy[i] == true )
+				{	
+				if( connection_vec[i]->Check_result() == true )
+					{	
+					// worker i is available for a nex task
+					worker_busy[i] = false;
+					//delete connection_vec[i]->contextPtr;
+					++task_finished;
+					}
+				}
+			++i;
+			}
+		}
+
+	while(task_finished < num_of_file_shard)
+		{	
+		i = 0;
+		while(i < num_of_worker)
+			{	
+			if( worker_busy[i] == true )
+				{	
+				if( connection_vec[i]->Check_result() == true )
+					{
+					worker_busy[i] = false;
+					//delete connection_vec[i]->contextPtr;
+					++task_finished;	
+					}
+				}
+			++i;
+			}
+		}
+	}*/
+
 bool Master::check_end(vector<bool> &input)
 	{
 	int i = 0;
@@ -307,7 +369,11 @@ bool Master::check_end(vector<bool> &input)
 void Master::sort_and_write()
 	{
 	// merge multiple files from mapper into one big file
-	ofstream fout("map_phase_output");//<--- input file for reducer
+	ofstream fout("temp");
+	string oldKey = "";
+	int output_file_counter = 0;
+	string output_filename;
+	//ofstream fout("map_phase_output");//<--- input file for reducer
 	// add offset in the future
 	//cout << num_of_file_shard << "!!" << endl;
 	vector <ifstream *> ifs;
@@ -368,6 +434,15 @@ void Master::sort_and_write()
 		// oldStr is the word we want to write in this round
 		oldStr = buf_key[idx];
 		cout << oldStr << endl;
+		if(oldKey.compare( buf_key[idx] ) != 0)
+			{
+			oldKey = buf_key[idx];
+			fout.close();
+			output_filename = "reduceInput_" + to_string( output_file_counter );
+			++output_file_counter;
+			reducer_input_filename_vec.push_back( output_filename );
+			fout.open(output_filename, ofstream::out );//start a new file
+			}
 		fout << buf_key[idx] << " " << buf_val[idx] << endl;
 		while( *(ifs[idx]) >> buf_key[idx] && oldStr.compare( buf_key[idx] ) == 0 )
 			{
@@ -385,18 +460,18 @@ void Master::sort_and_write()
 			}
 		// else, the buf[idx] contains the next word we are going to read from ifs[idx]
 		}
+	fout.close();
+	remove("temp");
 	//cout << "End loop" << endl;
 
 	i = 0;
 	while(i < num_of_file_shard)
 		{	
 		ifs[i]->close();
-		//remove( map_output_filename_vec[i].c_str() );
+		remove( map_output_filename_vec[i].c_str() );
 		++i;
 		}
-	fout.close();
 	return;
-
 	}
 
 /* CS6210_TASK: Here you go. once this function is called you will complete whole map reduce task and return true if succeeded */
