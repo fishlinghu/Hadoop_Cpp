@@ -55,6 +55,7 @@ class Worker {
 		}
         void set_mapper_output_filename(shared_ptr<BaseMapper> mapper, string s);
         void set_reducer_output_filename(shared_ptr<BaseReducer> reducer, string s);
+        
         class CallData
             {
             public:
@@ -246,7 +247,9 @@ void Worker::CallData::Proceed() {
                 string key; // this holds the key
                 string tempStr;
                 // this is the cummilative sorted output file now.
-                ifstream fin(query_.output_filename()); // expect it to be in the same directory
+                // ifstream fin(query_.output_filename()); // expect it to be in the same directory
+                ifstream fin( "map_phase_output" ); // for testing
+                
                 int data_size = query_.data_size();
                 int file_offset = query_.file_offset();
                 

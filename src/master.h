@@ -49,7 +49,8 @@ class Master {
 
     			// Context for the client. It could be used to convey extra information to
 				// the server and/or tweak certain RPC behaviors.
-				// ClientContext context;
+				
+				//ClientContext context;
 				ClientContext* contextPtr;
 
     			Master* caller;
@@ -68,6 +69,7 @@ class Master {
 
 		void hi_worker();
 		void run_map();
+		void run_reduce();
 		void sort_and_write();
 		bool check_end(vector<bool> &input);
 		
@@ -176,8 +178,8 @@ bool Master::MasterGRPC::Check_result()
     // tells us whether there is any kind of event or the cq_ is shutting down.
     //GPR_ASSERT(cq.Next(&got_tag, &ok));
     
-    //cq.Next(&got_tag, &ok);
-    cq.AsyncNext(&got_tag, &ok, std::chrono::system_clock::now()+std::chrono::seconds(3));
+    cq.Next(&got_tag, &ok);
+    //cq.AsyncNext(&got_tag, &ok, std::chrono::system_clock::now()+std::chrono::seconds(3));
 
     // Verify that the result from "cq" corresponds, by its tag, our previous
     // request.
@@ -228,16 +230,20 @@ void Master::run_map()
 	while( task_remain >= 0 )
 		{	
 		i = 0;
-		while(i < num_of_worker)
+		while(i < num_of_worker && task_remain >= 0)
 			{	
+			cout << "Check if worker " << i << " can accept the task." << endl;
 			if(worker_busy[i] == false)
-				{	
+				{
+				cout << "Worker " << i << " is assigned with task " << task_remain << endl;
 				connection_vec[i]->AssignTask(1, task_remain);
 				worker_busy[i] = true;
 				--task_remain;
 				}
+			cout << "ENDIF" << endl;
 			++i;
 			}
+		cout << "Task remain: " << task_remain << endl;
 		// now all workers are busy, or all tasks are assigned
 		i = 0;
 		while(i < num_of_worker)
@@ -248,6 +254,7 @@ void Master::run_map()
 					{	
 					// worker i is available for a nex task
 					worker_busy[i] = false;
+					//delete connection_vec[i]->contextPtr;
 					++task_finished;
 					}
 				}
@@ -265,12 +272,20 @@ void Master::run_map()
 				if( connection_vec[i]->Check_result() == true )
 					{
 					worker_busy[i] = false;
+					//delete connection_vec[i]->contextPtr;
 					++task_finished;	
 					}
 				}
 			++i;
 			}
 		}
+	}
+
+void Master::run_reduce()
+	{
+	int i = 0;
+	connection_vec[i]->AssignTask(2, 0);
+	cout << "Reduce job: " << connection_vec[i]->Check_result() << endl;
 	}
 
 bool Master::check_end(vector<bool> &input)
@@ -398,6 +413,7 @@ bool Master::run()
 	run_map();
 	// Collect the result
 	sort_and_write();
+	run_reduce();
 	// Assign reduce tasks to worker
 	//flag1 = master.AssignTask(2, 0);
 	//flag2 = master.AssignTask(2, 1);
