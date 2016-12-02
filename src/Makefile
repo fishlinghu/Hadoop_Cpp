@@ -25,7 +25,7 @@ $(MR_WORKER_LIB): masterworker.pb.o masterworker.grpc.pb.o mr_task_factory.o run
 	ar -rcs $@ masterworker.pb.o masterworker.grpc.pb.o mr_task_factory.o run_worker.o
 	ranlib $@
 
-%.o: %.cc master.h mr_tasks.h worker.h
+%.o: %.cc
 	$(CXX) -c $< -I../external/include $(CXXFLAGS)
 
 .PRECIOUS: %.grpc.pb.cc

@@ -219,7 +219,8 @@ void Worker::CallData::Proceed() {
                 // close the output and file
                 out.close();
                 in.close();
-                remove( mapper_output_filename );
+                //if ( remove( mapper_output_filename.c_str() ) != 0 )
+                    //cout << "Cannot remove file " << mapper_output_filename.c_str() << endl;
                 // now remove the input file and rename output file
                 // by input file
                 /*int result= rename( out_filename.c_str() , in_filename.c_str() );
