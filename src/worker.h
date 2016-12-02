@@ -249,10 +249,7 @@ void Worker::CallData::Proceed() {
                 string tempStr;
                 // this is the cummilative sorted output file now.
                 // ifstream fin(query_.output_filename()); // expect it to be in the same directory
-                ifstream fin( "map_phase_output" ); // for testing
-                
-                int data_size = query_.data_size();
-                int file_offset = query_.file_offset();
+                ifstream fin( query_.file_path() );
                 
                 fin >> key;
                 while( fin >> tempStr )
@@ -263,7 +260,7 @@ void Worker::CallData::Proceed() {
 
                 fin.close();
 
-                parent->set_reducer_output_filename(reducer, query_.output_filename()+"_reducer");
+                parent->set_reducer_output_filename(reducer, query_.output_filename());
 
                 // instead of passing each entry...just pass the whole vector of string which has each entry as "1"
                 // number of entry is wrt how many times the key is repeated in the file.

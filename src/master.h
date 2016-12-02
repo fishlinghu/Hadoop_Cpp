@@ -146,12 +146,25 @@ void Master::MasterGRPC::AssignTask(int map_or_reduce, int task_id) //1 for map,
 	Master_to_Worker request;
 	MasterQuery* info;
 	info = request.add_masterquery();
-    info->set_file_path( caller->file_shards_vec[task_id].input_filename ); //<---the name of input file
-    info->set_file_offset( caller->file_shards_vec[task_id].offset );
-    info->set_map_reduce( map_or_reduce );
-    info->set_data_size( caller->file_shards_vec[task_id].dataSize ); //<--
-    info->set_id_assigned_to_worker(1);
-    info->set_output_filename(caller->map_output_filename_vec[task_id]); //<---the name of output file
+    if(map_or_reduce == 1)
+		{
+		info->set_file_path( caller->file_shards_vec[task_id].input_filename ); //<---the name of input file
+    	info->set_file_offset( caller->file_shards_vec[task_id].offset );
+    	info->set_map_reduce( map_or_reduce );
+    	info->set_data_size( caller->file_shards_vec[task_id].dataSize ); //<--
+    	//info->set_data_size( 20 );
+    	info->set_id_assigned_to_worker(1); // we do not use this
+    	info->set_output_filename(caller->map_output_filename_vec[task_id]); //<---the name of output file
+		}
+	else
+		{	
+		info->set_file_path( caller->reducer_input_filename_vec[task_id] ); //<---the name of input file
+    	info->set_file_offset( 0 ); // we do not use this
+    	info->set_map_reduce( map_or_reduce );
+    	info->set_data_size( 0 ); // we do not use this
+    	info->set_id_assigned_to_worker(1); // we do not use this
+    	info->set_output_filename( caller->reducer_input_filename_vec[task_id] + "_out" ); //<---the name of output file
+		}
     
     
 
@@ -282,14 +295,14 @@ void Master::run_map()
 		}
 	}
 
-void Master::run_reduce()
+/*void Master::run_reduce()
 	{
 	int i = 0;
 	connection_vec[i]->AssignTask(2, 0);
 	cout << "Reduce job: " << connection_vec[i]->Check_result() << endl;
-	}
+	}*/
 
-/*bool Master::run_reduce()
+void Master::run_reduce()
 	{
 	vector<bool> worker_busy(num_of_worker, false); // record which worker is busy / available for a task
 
@@ -301,15 +314,15 @@ void Master::run_reduce()
 		i = 0;
 		while(i < num_of_worker && task_remain >= 0)
 			{	
-			cout << "Check if worker " << i << " can accept the task." << endl;
+			//cout << "Check if worker " << i << " can accept the task." << endl;
 			if(worker_busy[i] == false)
 				{
-				cout << "Worker " << i << " is assigned with task " << task_remain << endl;
+				//cout << "Worker " << i << " is assigned with task " << task_remain << endl;
 				connection_vec[i]->AssignTask(1, task_remain);
 				worker_busy[i] = true;
 				--task_remain;
 				}
-			cout << "ENDIF" << endl;
+			//cout << "ENDIF" << endl;
 			++i;
 			}
 		cout << "Task remain: " << task_remain << endl;
@@ -348,7 +361,7 @@ void Master::run_reduce()
 			++i;
 			}
 		}
-	}*/
+	}
 
 bool Master::check_end(vector<bool> &input)
 	{
@@ -492,6 +505,7 @@ bool Master::run()
 	run_map();
 	// Collect the result
 	sort_and_write();
+	cout << "Map and sort success. " << endl;
 	run_reduce();
 	// Assign reduce tasks to worker
 	//flag1 = master.AssignTask(2, 0);
