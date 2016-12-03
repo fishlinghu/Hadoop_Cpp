@@ -192,16 +192,16 @@ bool Master::MasterGRPC::Check_result()
     // tells us whether there is any kind of event or the cq_ is shutting down.
     //GPR_ASSERT(cq.Next(&got_tag, &ok));
     
-    cq.Next(&got_tag, &ok);
-    //cq.AsyncNext(&got_tag, &ok, std::chrono::system_clock::now()+std::chrono::milliseconds(50));
+    //cq.Next(&got_tag, &ok);
+    cq.AsyncNext(&got_tag, &ok, std::chrono::system_clock::now()+std::chrono::milliseconds(50));
 
     // Verify that the result from "cq" corresponds, by its tag, our previous
     // request.
-    GPR_ASSERT(got_tag == (void*)1);
+    // GPR_ASSERT(got_tag == (void*)1);
     
     // ... and that the request was completed successfully. Note that "ok"
     // corresponds solely to the request for updates introduced by Finish().
-    GPR_ASSERT(ok);
+    // GPR_ASSERT(ok);
 
     // Act upon the status of the actual RPC.
     if (status.ok()) 
@@ -484,10 +484,10 @@ void Master::sort_and_write()
 		{	
 		ifs[i]->close();
 		temp_filename = map_output_filename_vec[i] + "_tmp";
-		/*if(remove( temp_filename.c_str() )!=0)
+		if(remove( temp_filename.c_str() )!=0)
 			cout << "Cannot remove file " << temp_filename << endl;
 		if(remove( map_output_filename_vec[i].c_str() )!=0)
-			cout << "Cannot remove file " << temp_filename << endl;*/
+			cout << "Cannot remove file " << temp_filename << endl;
 		++i;
 		}
 	return;
@@ -495,7 +495,7 @@ void Master::sort_and_write()
 
 void Master::collect_result()
 	{
-	ofstream fout("final_result");
+	ofstream fout("output/final_result");
 	ifstream fin;
 	int i = 0;
 	while(i < reducer_input_filename_vec.size())
@@ -503,8 +503,10 @@ void Master::collect_result()
 		fin.open(reducer_input_filename_vec[i]+"_out");
 		fout << fin.rdbuf();
 		fin.close();
-		// remove( reducer_input_filename_vec[i].c_str() );
-		// remove( (reducer_input_filename_vec[i]+"_out").c_str() );
+		if(remove( reducer_input_filename_vec[i].c_str() )!=0)
+			cout << "Cannot remove file " << reducer_input_filename_vec[i] << endl;
+		if(remove( (reducer_input_filename_vec[i]+"_out").c_str() )!=0)
+			cout << "Cannot remove file " << reducer_input_filename_vec[i]+"_out" << endl;
 		++i;
 		}
 	fout.close();
