@@ -71,6 +71,7 @@ class Master {
 		void run_map();
 		void run_reduce();
 		void sort_and_write();
+		void collect_result();
 		bool check_end(vector<bool> &input);
 		
 		int num_of_worker;
@@ -492,6 +493,23 @@ void Master::sort_and_write()
 	return;
 	}
 
+void Master::collect_result()
+	{
+	ofstream fout("final_result");
+	ifstream fin;
+	int i = 0;
+	while(i < reducer_input_filename_vec.size())
+		{	
+		fin.open(reducer_input_filename_vec[i]+"_out");
+		fout << fin.rdbuf();
+		fin.close();
+		// remove( reducer_input_filename_vec[i].c_str() );
+		// remove( (reducer_input_filename_vec[i]+"_out").c_str() );
+		++i;
+		}
+	fout.close();
+	}
+
 /* CS6210_TASK: Here you go. once this function is called you will complete whole map reduce task and return true if succeeded */
 bool Master::run() 
 	{
@@ -508,6 +526,7 @@ bool Master::run()
 	sort_and_write();
 	cout << "Map and sort success. " << endl;
 	run_reduce();
+	collect_result();
 	// Assign reduce tasks to worker
 	//flag1 = master.AssignTask(2, 0);
 	//flag2 = master.AssignTask(2, 1);
