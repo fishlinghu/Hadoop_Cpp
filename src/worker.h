@@ -158,9 +158,8 @@ void Worker::CallData::Proceed() {
       
         // The actual processing.
         ///////////////////////////////////////////////////////////////////////////
-        // use your own function here...        
-        unsigned int mapR;
-        int size = request_.masterquery_size();
+        //int size = request_.masterquery_size();
+        int size = 1;
         for (int i = 0; i < size; ++i) // parse through all the queries in the queue
         {
             query_ = request_.masterquery(i);
@@ -224,9 +223,11 @@ void Worker::CallData::Proceed() {
                 
                 /////////////////////////////////////////////////////////////
                 /*set is_done*/
+                delete [] buffer;
                 reply_.set_is_done(true);
             } else if (query_.map_reduce() == 2) { // reducer code
                 /*reducer code*/
+                cout << "1111111111111" << endl;
                 auto reducer = get_reducer_from_task_factory("cs6210");
                 /*todo.....
                 open a file; read a file and pass the parameter(key) from the file to the reducer*/
@@ -244,26 +245,29 @@ void Worker::CallData::Proceed() {
                 // this is the cummilative sorted output file now.
                 // ifstream fin(query_.output_filename()); // expect it to be in the same directory
                 cout << "Read input: " << query_.file_path() << endl;
+                cout << "222222222222222" << endl;
                 ifstream fin( query_.file_path() );
-                
+                cout << "333333333333333" << endl;
                 while( fin >> key )
                     {   
                     fin >> tempStr;
                     value.push_back( tempStr );
                     }
-
+                cout << "44444444444444" << endl;
                 fin.close();
 
                 parent->set_reducer_output_filename(reducer, query_.output_filename());
-
+                cout << "55555555555555" << endl;
                 // instead of passing each entry...just pass the whole vector of string which has each entry as "1"
                 // number of entry is wrt how many times the key is repeated in the file.
                 reducer->reduce(key, value);
                 // examplar:
                 // reducer->reduce("dummy"/*key*/, std::vector<std::string>({"1", "1"})/*all the values for the given key!!!!*/);    
                 /*set is_done*/  
+                cout << "66666666666666" << endl;
                 cout << "Wrtie to: " << query_.output_filename() << endl;       
                 reply_.set_is_done(true);
+                cout << "77777777777777" << endl;
             }
         }
             ////////////////////////////////////////////////////////////////////////////
