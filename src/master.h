@@ -484,10 +484,10 @@ void Master::sort_and_write()
 		{	
 		ifs[i]->close();
 		temp_filename = map_output_filename_vec[i] + "_tmp";
-		if(remove( temp_filename.c_str() )!=0)
+		/*if(remove( temp_filename.c_str() )!=0)
 			cout << "Cannot remove file " << temp_filename << endl;
 		if(remove( map_output_filename_vec[i].c_str() )!=0)
-			cout << "Cannot remove file " << temp_filename << endl;
+			cout << "Cannot remove file " << temp_filename << endl;*/
 		++i;
 		}
 	return;

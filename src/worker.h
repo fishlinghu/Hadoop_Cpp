@@ -191,8 +191,10 @@ void Worker::CallData::Proceed() {
                 parent->set_mapper_output_filename(mapper, mapper_output_filename);
 
                 while(std::getline(ss, line))
-                    mapper->map(line); // this will call the emit() function internally
-                                       // for a given line
+                    {
+                    line = line + " ";
+                    mapper->map(line); // this will call the emit() function for a given line
+                    }
                 
                 infile.close();
                 ///////////////////////////////////////////////////////////////////////
