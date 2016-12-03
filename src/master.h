@@ -192,7 +192,7 @@ bool Master::MasterGRPC::Check_result()
     //GPR_ASSERT(cq.Next(&got_tag, &ok));
     
     //cq.Next(&got_tag, &ok);
-    cq.AsyncNext(&got_tag, &ok, std::chrono::system_clock::now()+std::chrono::seconds(3));
+    cq.AsyncNext(&got_tag, &ok, std::chrono::system_clock::now()+std::chrono::milliseconds(50));
 
     // Verify that the result from "cq" corresponds, by its tag, our previous
     // request.
@@ -314,15 +314,15 @@ void Master::run_reduce()
 		i = 0;
 		while(i < num_of_worker && task_remain >= 0)
 			{	
-			//cout << "Check if worker " << i << " can accept the task." << endl;
+			cout << "Check if worker " << i << " can accept the task." << endl;
 			if(worker_busy[i] == false)
 				{
-				//cout << "Worker " << i << " is assigned with task " << task_remain << endl;
-				connection_vec[i]->AssignTask(1, task_remain);
+				cout << "Worker " << i << " is assigned with task " << task_remain << endl;
+				connection_vec[i]->AssignTask(2, task_remain);
 				worker_busy[i] = true;
 				--task_remain;
 				}
-			//cout << "ENDIF" << endl;
+			cout << "ENDIF" << endl;
 			++i;
 			}
 		cout << "Task remain: " << task_remain << endl;

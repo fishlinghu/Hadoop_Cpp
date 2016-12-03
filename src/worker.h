@@ -219,15 +219,7 @@ void Worker::CallData::Proceed() {
                 // close the output and file
                 out.close();
                 in.close();
-                //if ( remove( mapper_output_filename.c_str() ) != 0 )
-                    //cout << "Cannot remove file " << mapper_output_filename.c_str() << endl;
-                // now remove the input file and rename output file
-                // by input file
-                /*int result= rename( out_filename.c_str() , in_filename.c_str() );
-                if ( result == 0 )
-                    puts ( "File successfully renamed" );
-                else
-                    perror( "Error renaming file" );    */
+                
                 /////////////////////////////////////////////////////////////
                 /*set is_done*/
                 reply_.set_is_done(true);
@@ -249,13 +241,13 @@ void Worker::CallData::Proceed() {
                 string tempStr;
                 // this is the cummilative sorted output file now.
                 // ifstream fin(query_.output_filename()); // expect it to be in the same directory
+                cout << "Read input: " << query_.file_path() << endl;
                 ifstream fin( query_.file_path() );
                 
-                fin >> key;
-                while( fin >> tempStr )
+                while( fin >> key )
                     {   
-                    value.push_back( tempStr );
                     fin >> tempStr;
+                    value.push_back( tempStr );
                     }
 
                 fin.close();
@@ -267,7 +259,8 @@ void Worker::CallData::Proceed() {
                 reducer->reduce(key, value);
                 // examplar:
                 // reducer->reduce("dummy"/*key*/, std::vector<std::string>({"1", "1"})/*all the values for the given key!!!!*/);    
-                /*set is_done*/         
+                /*set is_done*/  
+                cout << "Wrtie to: " << query_.output_filename() << endl;       
                 reply_.set_is_done(true);
             }
         }
