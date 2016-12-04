@@ -138,8 +138,10 @@ void Worker::HandleRpcs()
         }
     }
 
-void Worker::CallData::Proceed() {
-      if (status_ == CREATE) {
+void Worker::CallData::Proceed() 
+    {
+    if (status_ == CREATE) 
+        {
         // Make this instance progress to the PROCESS state.
         status_ = PROCESS;
 
@@ -150,7 +152,9 @@ void Worker::CallData::Proceed() {
         // the memory address of this CallData instance.
         service_->RequestAssignTask(&ctx_, &request_, &responder_, cq_, cq_,
                                   this);
-      } else if (status_ == PROCESS) {
+        } 
+    else if (status_ == PROCESS) 
+        {
         // Spawn a new CallData instance to serve new clients while we process
         // the one for this CallData. The instance will deallocate itself as
         // part of its FINISH state.
@@ -161,9 +165,10 @@ void Worker::CallData::Proceed() {
         //int size = request_.masterquery_size();
         int size = 1;
         for (int i = 0; i < size; ++i) // parse through all the queries in the queue
-        {
+            {
             query_ = request_.masterquery(i);
-            if (query_.map_reduce() == 1) { // mapper
+            if (query_.map_reduce() == 1) 
+                { // mapper
                 /*mapper code*/
 
                 auto mapper = get_mapper_from_task_factory("cs6210");
@@ -225,7 +230,9 @@ void Worker::CallData::Proceed() {
                 /*set is_done*/
                 delete [] buffer;
                 reply_.set_is_done(true);
-            } else if (query_.map_reduce() == 2) { // reducer code
+                } 
+            else if (query_.map_reduce() == 2) 
+                { // reducer code
                 /*reducer code*/
                 cout << "1111111111111" << endl;
                 auto reducer = get_reducer_from_task_factory("cs6210");
@@ -268,8 +275,8 @@ void Worker::CallData::Proceed() {
                 cout << "Wrtie to: " << query_.output_filename() << endl;       
                 reply_.set_is_done(true);
                 cout << "77777777777777" << endl;
+                }
             }
-        }
             ////////////////////////////////////////////////////////////////////////////
 
         // And we are done! Let the gRPC runtime know we've finished, using the
@@ -278,11 +285,13 @@ void Worker::CallData::Proceed() {
         status_ = FINISH;
         responder_.Finish(reply_, Status::OK, this);
         cout << parent->worker_ip_addr << " finished. " << endl;
-      } else {
+        } 
+    else 
+        {
         GPR_ASSERT(status_ == FINISH);
         // Once in the FINISH state, deallocate ourselves (CallData).
         delete this;
-      }
+        }
     }
 
 
