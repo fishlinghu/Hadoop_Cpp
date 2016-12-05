@@ -35,10 +35,7 @@
 #include <iostream>
 #include <string>
 #include <thread>
-#include <vector>
-#include <mutex>
-#include <future>
-#include <unistd.h>
+
 #include <grpc++/grpc++.h>
 #include <grpc/support/log.h>
 
@@ -64,9 +61,7 @@ class ServerImpl final {
 
   // There is no shutdown handling in this code.
   void Run() {
-
     std::string server_address("0.0.0.0:50051");
-    
 
     ServerBuilder builder;
     // Listen on the given address without any authentication mechanism.
@@ -117,36 +112,27 @@ class ServerImpl final {
         new CallData(service_, cq_);
 
         // The actual processing.
-        std::cout << "server-side: request_.name()" <<request_.name() << std::endl;
+        if (static_cast<int>(request_.type()) == 0) // for Greeter..
+        {
+          std::string prefix("Hello ");
+          reply_.set_message(prefix + request_.name());
+        }
+        else if (static_cast<int>(request_.type()) == 1) // for HB
+        {
+          std::string postfix(" Yes");
+          reply_.set_message(request_.name() + postfix);
+        }
 
-        auto t = std::thread(&CallData::server_thread, this, static_cast<int>(request_.type()));
-        t.detach();
-
+        // And we are done! Let the gRPC runtime know we've finished, using the
+        // memory address of this instance as the uniquely identifying tag for
+        // the event.
+        status_ = FINISH;
+        responder_.Finish(reply_, Status::OK, this);
       } else {
         GPR_ASSERT(status_ == FINISH);
         // Once in the FINISH state, deallocate ourselves (CallData).
         delete this;
       }
-    }
-
-    void server_thread(int type) {
-      // new CallData(service_, cq_);
-
-      if (type == 0)
-      {
-          std::string prefix("Hello ");
-          reply_.set_message(prefix + request_.name());
-          usleep(1000000);
-      }
-      else if (type == 1)
-      {
-          std::string postfix(" Yes");
-          reply_.set_message(request_.name() + postfix);
-      }
-        status_ = FINISH;
-        responder_.Finish(reply_, Status::OK, this);
-        //  delete this;
-        // return;
     }
 
    private:
@@ -164,9 +150,6 @@ class ServerImpl final {
     HelloRequest request_;
     // What we send back to the client.
     HelloReply reply_;
-
-    // declare threads here...
-    std::thread thd1, thd2;
 
     // The means to get back to the client.
     ServerAsyncResponseWriter<HelloReply> responder_;
@@ -191,7 +174,6 @@ class ServerImpl final {
       GPR_ASSERT(cq_->Next(&tag, &ok));
       GPR_ASSERT(ok);
       static_cast<CallData*>(tag)->Proceed();
-      //static_cast<CallData*>(tag);
     }
   }
 

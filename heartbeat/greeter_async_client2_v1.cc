@@ -66,6 +66,7 @@ class GreeterClient {
         // Data we are sending to the server.
         HelloRequest request;
         // HelloRequest_rpcType rpc_type= rpcType;
+
         if (rpcType == GREETER) 
         {
             request.set_name(user); // caller will set the name appropriately
@@ -77,7 +78,6 @@ class GreeterClient {
             request.set_type(static_cast< ::helloworld::HelloRequest_rpcType > (rpcType)); 
         }
 
-        // std::cout << "Client-side sending request: " << request.name() << std::endl;
         // Call object to store rpc data
         AsyncClientCall* call = new AsyncClientCall;
 
@@ -163,13 +163,13 @@ int main(int argc, char** argv) {
     GreeterClient greeter(grpc::CreateChannel(
             "localhost:50051", grpc::InsecureChannelCredentials()));
     // just create another object of same class type for heartbeat messages..
-    //GreeterClient hb(grpc::CreateChannel(
-           // "localhost:50051", grpc::InsecureChannelCredentials()));
+    GreeterClient hb(grpc::CreateChannel(
+            "localhost:50051", grpc::InsecureChannelCredentials()));
 
 
     // Spawn reader thread that loops indefinitely
     std::thread thread_ = std::thread(&GreeterClient::AsyncCompleteRpc, &greeter);
-    //std::thread thread1_ = std::thread(&GreeterClient::AsyncCompleteRpc, &hb);
+    std::thread thread1_ = std::thread(&GreeterClient::AsyncCompleteRpc, &hb);
 
     for (int i = 0; i < 100; i++) {
         std::string user("world " + std::to_string(i));
@@ -178,16 +178,16 @@ int main(int argc, char** argv) {
 
     // send RPC call each second
     // send RPC call each second
-    for(int i = 0; i < 100; i++) {
+    while(true) {
         std::string user("Are you alive?: ");
-        greeter.SayHello(user, HB);  // The actual RPC call! 
-        usleep(10000);  // repeat after each second
+        hb.SayHello(user, HB);  // The actual RPC call! 
+        usleep(1000000);  // repeat after each second
     }
 
 
     std::cout << "Press control-c to quit" << std::endl << std::endl;
     thread_.join();  //blocks forever
-    //thread1_.join();  //blocks forever
+    thread1_.join();  //blocks forever
 
     return 0;
 }
