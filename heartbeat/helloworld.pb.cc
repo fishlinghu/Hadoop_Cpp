@@ -24,15 +24,10 @@ namespace {
 const ::google::protobuf::Descriptor* HelloRequest_descriptor_ = NULL;
 const ::google::protobuf::internal::GeneratedMessageReflection*
   HelloRequest_reflection_ = NULL;
-const ::google::protobuf::Descriptor* aliveRequest_descriptor_ = NULL;
-const ::google::protobuf::internal::GeneratedMessageReflection*
-  aliveRequest_reflection_ = NULL;
+const ::google::protobuf::EnumDescriptor* HelloRequest_rpcType_descriptor_ = NULL;
 const ::google::protobuf::Descriptor* HelloReply_descriptor_ = NULL;
 const ::google::protobuf::internal::GeneratedMessageReflection*
   HelloReply_reflection_ = NULL;
-const ::google::protobuf::Descriptor* aliveReply_descriptor_ = NULL;
-const ::google::protobuf::internal::GeneratedMessageReflection*
-  aliveReply_reflection_ = NULL;
 
 }  // namespace
 
@@ -45,8 +40,9 @@ void protobuf_AssignDesc_helloworld_2eproto() {
       "helloworld.proto");
   GOOGLE_CHECK(file != NULL);
   HelloRequest_descriptor_ = file->message_type(0);
-  static const int HelloRequest_offsets_[1] = {
+  static const int HelloRequest_offsets_[2] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(HelloRequest, name_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(HelloRequest, type_),
   };
   HelloRequest_reflection_ =
     ::google::protobuf::internal::GeneratedMessageReflection::NewGeneratedMessageReflection(
@@ -59,22 +55,8 @@ void protobuf_AssignDesc_helloworld_2eproto() {
       sizeof(HelloRequest),
       GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(HelloRequest, _internal_metadata_),
       GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(HelloRequest, _is_default_instance_));
-  aliveRequest_descriptor_ = file->message_type(1);
-  static const int aliveRequest_offsets_[1] = {
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(aliveRequest, alivereq_),
-  };
-  aliveRequest_reflection_ =
-    ::google::protobuf::internal::GeneratedMessageReflection::NewGeneratedMessageReflection(
-      aliveRequest_descriptor_,
-      aliveRequest::default_instance_,
-      aliveRequest_offsets_,
-      -1,
-      -1,
-      -1,
-      sizeof(aliveRequest),
-      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(aliveRequest, _internal_metadata_),
-      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(aliveRequest, _is_default_instance_));
-  HelloReply_descriptor_ = file->message_type(2);
+  HelloRequest_rpcType_descriptor_ = HelloRequest_descriptor_->enum_type(0);
+  HelloReply_descriptor_ = file->message_type(1);
   static const int HelloReply_offsets_[1] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(HelloReply, message_),
   };
@@ -89,21 +71,6 @@ void protobuf_AssignDesc_helloworld_2eproto() {
       sizeof(HelloReply),
       GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(HelloReply, _internal_metadata_),
       GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(HelloReply, _is_default_instance_));
-  aliveReply_descriptor_ = file->message_type(3);
-  static const int aliveReply_offsets_[1] = {
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(aliveReply, aliverep_),
-  };
-  aliveReply_reflection_ =
-    ::google::protobuf::internal::GeneratedMessageReflection::NewGeneratedMessageReflection(
-      aliveReply_descriptor_,
-      aliveReply::default_instance_,
-      aliveReply_offsets_,
-      -1,
-      -1,
-      -1,
-      sizeof(aliveReply),
-      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(aliveReply, _internal_metadata_),
-      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(aliveReply, _is_default_instance_));
 }
 
 namespace {
@@ -120,11 +87,7 @@ void protobuf_RegisterTypes(const ::std::string&) {
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
       HelloRequest_descriptor_, &HelloRequest::default_instance());
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
-      aliveRequest_descriptor_, &aliveRequest::default_instance());
-  ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
       HelloReply_descriptor_, &HelloReply::default_instance());
-  ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
-      aliveReply_descriptor_, &aliveReply::default_instance());
 }
 
 }  // namespace
@@ -132,12 +95,8 @@ void protobuf_RegisterTypes(const ::std::string&) {
 void protobuf_ShutdownFile_helloworld_2eproto() {
   delete HelloRequest::default_instance_;
   delete HelloRequest_reflection_;
-  delete aliveRequest::default_instance_;
-  delete aliveRequest_reflection_;
   delete HelloReply::default_instance_;
   delete HelloReply_reflection_;
-  delete aliveReply::default_instance_;
-  delete aliveReply_reflection_;
 }
 
 void protobuf_AddDesc_helloworld_2eproto() GOOGLE_ATTRIBUTE_COLD;
@@ -148,26 +107,20 @@ void protobuf_AddDesc_helloworld_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-    "\n\020helloworld.proto\022\nhelloworld\"\034\n\014HelloR"
-    "equest\022\014\n\004name\030\001 \001(\t\" \n\014aliveRequest\022\020\n\010"
-    "alivereq\030\001 \001(\t\"\035\n\nHelloReply\022\017\n\007message\030"
-    "\001 \001(\t\"\036\n\naliveReply\022\020\n\010aliverep\030\001 \001(\t2I\n"
-    "\007Greeter\022>\n\010SayHello\022\030.helloworld.HelloR"
-    "equest\032\026.helloworld.HelloReply\"\0002L\n\tHear"
-    "tbeat\022\?\n\tHeartBeat\022\030.helloworld.aliveReq"
-    "uest\032\026.helloworld.aliveReply\"\000B6\n\033io.grp"
-    "c.examples.helloworldB\017HelloWorldProtoP\001"
-    "\242\002\003HLWb\006proto3", 374);
+    "\n\020helloworld.proto\022\nhelloworld\"l\n\014HelloR"
+    "equest\022\014\n\004name\030\001 \001(\t\022.\n\004type\030\002 \001(\0162 .hel"
+    "loworld.HelloRequest.rpcType\"\036\n\007rpcType\022"
+    "\013\n\007GREETER\020\000\022\006\n\002HB\020\001\"\035\n\nHelloReply\022\017\n\007me"
+    "ssage\030\001 \001(\t2I\n\007Greeter\022>\n\010SayHello\022\030.hel"
+    "loworld.HelloRequest\032\026.helloworld.HelloR"
+    "eply\"\000B6\n\033io.grpc.examples.helloworldB\017H"
+    "elloWorldProtoP\001\242\002\003HLWb\006proto3", 310);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "helloworld.proto", &protobuf_RegisterTypes);
   HelloRequest::default_instance_ = new HelloRequest();
-  aliveRequest::default_instance_ = new aliveRequest();
   HelloReply::default_instance_ = new HelloReply();
-  aliveReply::default_instance_ = new aliveReply();
   HelloRequest::default_instance_->InitAsDefaultInstance();
-  aliveRequest::default_instance_->InitAsDefaultInstance();
   HelloReply::default_instance_->InitAsDefaultInstance();
-  aliveReply::default_instance_->InitAsDefaultInstance();
   ::google::protobuf::internal::OnShutdown(&protobuf_ShutdownFile_helloworld_2eproto);
 }
 
@@ -180,8 +133,30 @@ struct StaticDescriptorInitializer_helloworld_2eproto {
 
 // ===================================================================
 
+const ::google::protobuf::EnumDescriptor* HelloRequest_rpcType_descriptor() {
+  protobuf_AssignDescriptorsOnce();
+  return HelloRequest_rpcType_descriptor_;
+}
+bool HelloRequest_rpcType_IsValid(int value) {
+  switch(value) {
+    case 0:
+    case 1:
+      return true;
+    default:
+      return false;
+  }
+}
+
+#if !defined(_MSC_VER) || _MSC_VER >= 1900
+const HelloRequest_rpcType HelloRequest::GREETER;
+const HelloRequest_rpcType HelloRequest::HB;
+const HelloRequest_rpcType HelloRequest::rpcType_MIN;
+const HelloRequest_rpcType HelloRequest::rpcType_MAX;
+const int HelloRequest::rpcType_ARRAYSIZE;
+#endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
 #if !defined(_MSC_VER) || _MSC_VER >= 1900
 const int HelloRequest::kNameFieldNumber;
+const int HelloRequest::kTypeFieldNumber;
 #endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
 
 HelloRequest::HelloRequest()
@@ -207,6 +182,7 @@ void HelloRequest::SharedCtor() {
   ::google::protobuf::internal::GetEmptyString();
   _cached_size_ = 0;
   name_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  type_ = 0;
 }
 
 HelloRequest::~HelloRequest() {
@@ -248,6 +224,7 @@ HelloRequest* HelloRequest::New(::google::protobuf::Arena* arena) const {
 void HelloRequest::Clear() {
 // @@protoc_insertion_point(message_clear_start:helloworld.HelloRequest)
   name_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  type_ = 0;
 }
 
 bool HelloRequest::MergePartialFromCodedStream(
@@ -269,6 +246,22 @@ bool HelloRequest::MergePartialFromCodedStream(
             this->name().data(), this->name().length(),
             ::google::protobuf::internal::WireFormatLite::PARSE,
             "helloworld.HelloRequest.name"));
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(16)) goto parse_type;
+        break;
+      }
+
+      // optional .helloworld.HelloRequest.rpcType type = 2;
+      case 2: {
+        if (tag == 16) {
+         parse_type:
+          int value;
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   int, ::google::protobuf::internal::WireFormatLite::TYPE_ENUM>(
+                 input, &value)));
+          set_type(static_cast< ::helloworld::HelloRequest_rpcType >(value));
         } else {
           goto handle_unusual;
         }
@@ -310,6 +303,12 @@ void HelloRequest::SerializeWithCachedSizes(
       1, this->name(), output);
   }
 
+  // optional .helloworld.HelloRequest.rpcType type = 2;
+  if (this->type() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteEnum(
+      2, this->type(), output);
+  }
+
   // @@protoc_insertion_point(serialize_end:helloworld.HelloRequest)
 }
 
@@ -327,6 +326,12 @@ void HelloRequest::SerializeWithCachedSizes(
         1, this->name(), target);
   }
 
+  // optional .helloworld.HelloRequest.rpcType type = 2;
+  if (this->type() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteEnumToArray(
+      2, this->type(), target);
+  }
+
   // @@protoc_insertion_point(serialize_to_array_end:helloworld.HelloRequest)
   return target;
 }
@@ -340,6 +345,12 @@ int HelloRequest::ByteSize() const {
     total_size += 1 +
       ::google::protobuf::internal::WireFormatLite::StringSize(
         this->name());
+  }
+
+  // optional .helloworld.HelloRequest.rpcType type = 2;
+  if (this->type() != 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::EnumSize(this->type());
   }
 
   GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
@@ -374,6 +385,9 @@ void HelloRequest::MergeFrom(const HelloRequest& from) {
 
     name_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.name_);
   }
+  if (from.type() != 0) {
+    set_type(from.type());
+  }
 }
 
 void HelloRequest::CopyFrom(const ::google::protobuf::Message& from) {
@@ -401,6 +415,7 @@ void HelloRequest::Swap(HelloRequest* other) {
 }
 void HelloRequest::InternalSwap(HelloRequest* other) {
   name_.Swap(&other->name_);
+  std::swap(type_, other->type_);
   _internal_metadata_.Swap(&other->_internal_metadata_);
   std::swap(_cached_size_, other->_cached_size_);
 }
@@ -460,288 +475,18 @@ void HelloRequest::clear_name() {
   // @@protoc_insertion_point(field_set_allocated:helloworld.HelloRequest.name)
 }
 
-#endif  // PROTOBUF_INLINE_NOT_IN_HEADERS
-
-// ===================================================================
-
-#if !defined(_MSC_VER) || _MSC_VER >= 1900
-const int aliveRequest::kAlivereqFieldNumber;
-#endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
-
-aliveRequest::aliveRequest()
-  : ::google::protobuf::Message(), _internal_metadata_(NULL) {
-  SharedCtor();
-  // @@protoc_insertion_point(constructor:helloworld.aliveRequest)
+// optional .helloworld.HelloRequest.rpcType type = 2;
+void HelloRequest::clear_type() {
+  type_ = 0;
 }
-
-void aliveRequest::InitAsDefaultInstance() {
-  _is_default_instance_ = true;
+ ::helloworld::HelloRequest_rpcType HelloRequest::type() const {
+  // @@protoc_insertion_point(field_get:helloworld.HelloRequest.type)
+  return static_cast< ::helloworld::HelloRequest_rpcType >(type_);
 }
-
-aliveRequest::aliveRequest(const aliveRequest& from)
-  : ::google::protobuf::Message(),
-    _internal_metadata_(NULL) {
-  SharedCtor();
-  MergeFrom(from);
-  // @@protoc_insertion_point(copy_constructor:helloworld.aliveRequest)
-}
-
-void aliveRequest::SharedCtor() {
-    _is_default_instance_ = false;
-  ::google::protobuf::internal::GetEmptyString();
-  _cached_size_ = 0;
-  alivereq_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-}
-
-aliveRequest::~aliveRequest() {
-  // @@protoc_insertion_point(destructor:helloworld.aliveRequest)
-  SharedDtor();
-}
-
-void aliveRequest::SharedDtor() {
-  alivereq_.DestroyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-  if (this != default_instance_) {
-  }
-}
-
-void aliveRequest::SetCachedSize(int size) const {
-  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
-  _cached_size_ = size;
-  GOOGLE_SAFE_CONCURRENT_WRITES_END();
-}
-const ::google::protobuf::Descriptor* aliveRequest::descriptor() {
-  protobuf_AssignDescriptorsOnce();
-  return aliveRequest_descriptor_;
-}
-
-const aliveRequest& aliveRequest::default_instance() {
-  if (default_instance_ == NULL) protobuf_AddDesc_helloworld_2eproto();
-  return *default_instance_;
-}
-
-aliveRequest* aliveRequest::default_instance_ = NULL;
-
-aliveRequest* aliveRequest::New(::google::protobuf::Arena* arena) const {
-  aliveRequest* n = new aliveRequest;
-  if (arena != NULL) {
-    arena->Own(n);
-  }
-  return n;
-}
-
-void aliveRequest::Clear() {
-// @@protoc_insertion_point(message_clear_start:helloworld.aliveRequest)
-  alivereq_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-}
-
-bool aliveRequest::MergePartialFromCodedStream(
-    ::google::protobuf::io::CodedInputStream* input) {
-#define DO_(EXPRESSION) if (!GOOGLE_PREDICT_TRUE(EXPRESSION)) goto failure
-  ::google::protobuf::uint32 tag;
-  // @@protoc_insertion_point(parse_start:helloworld.aliveRequest)
-  for (;;) {
-    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
-    tag = p.first;
-    if (!p.second) goto handle_unusual;
-    switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // optional string alivereq = 1;
-      case 1: {
-        if (tag == 10) {
-          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
-                input, this->mutable_alivereq()));
-          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-            this->alivereq().data(), this->alivereq().length(),
-            ::google::protobuf::internal::WireFormatLite::PARSE,
-            "helloworld.aliveRequest.alivereq"));
-        } else {
-          goto handle_unusual;
-        }
-        if (input->ExpectAtEnd()) goto success;
-        break;
-      }
-
-      default: {
-      handle_unusual:
-        if (tag == 0 ||
-            ::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-            ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
-          goto success;
-        }
-        DO_(::google::protobuf::internal::WireFormatLite::SkipField(input, tag));
-        break;
-      }
-    }
-  }
-success:
-  // @@protoc_insertion_point(parse_success:helloworld.aliveRequest)
-  return true;
-failure:
-  // @@protoc_insertion_point(parse_failure:helloworld.aliveRequest)
-  return false;
-#undef DO_
-}
-
-void aliveRequest::SerializeWithCachedSizes(
-    ::google::protobuf::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:helloworld.aliveRequest)
-  // optional string alivereq = 1;
-  if (this->alivereq().size() > 0) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->alivereq().data(), this->alivereq().length(),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "helloworld.aliveRequest.alivereq");
-    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
-      1, this->alivereq(), output);
-  }
-
-  // @@protoc_insertion_point(serialize_end:helloworld.aliveRequest)
-}
-
-::google::protobuf::uint8* aliveRequest::InternalSerializeWithCachedSizesToArray(
-    bool deterministic, ::google::protobuf::uint8* target) const {
-  // @@protoc_insertion_point(serialize_to_array_start:helloworld.aliveRequest)
-  // optional string alivereq = 1;
-  if (this->alivereq().size() > 0) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->alivereq().data(), this->alivereq().length(),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "helloworld.aliveRequest.alivereq");
-    target =
-      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
-        1, this->alivereq(), target);
-  }
-
-  // @@protoc_insertion_point(serialize_to_array_end:helloworld.aliveRequest)
-  return target;
-}
-
-int aliveRequest::ByteSize() const {
-// @@protoc_insertion_point(message_byte_size_start:helloworld.aliveRequest)
-  int total_size = 0;
-
-  // optional string alivereq = 1;
-  if (this->alivereq().size() > 0) {
-    total_size += 1 +
-      ::google::protobuf::internal::WireFormatLite::StringSize(
-        this->alivereq());
-  }
-
-  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
-  _cached_size_ = total_size;
-  GOOGLE_SAFE_CONCURRENT_WRITES_END();
-  return total_size;
-}
-
-void aliveRequest::MergeFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_merge_from_start:helloworld.aliveRequest)
-  if (GOOGLE_PREDICT_FALSE(&from == this)) {
-    ::google::protobuf::internal::MergeFromFail(__FILE__, __LINE__);
-  }
-  const aliveRequest* source = 
-      ::google::protobuf::internal::DynamicCastToGenerated<const aliveRequest>(
-          &from);
-  if (source == NULL) {
-  // @@protoc_insertion_point(generalized_merge_from_cast_fail:helloworld.aliveRequest)
-    ::google::protobuf::internal::ReflectionOps::Merge(from, this);
-  } else {
-  // @@protoc_insertion_point(generalized_merge_from_cast_success:helloworld.aliveRequest)
-    MergeFrom(*source);
-  }
-}
-
-void aliveRequest::MergeFrom(const aliveRequest& from) {
-// @@protoc_insertion_point(class_specific_merge_from_start:helloworld.aliveRequest)
-  if (GOOGLE_PREDICT_FALSE(&from == this)) {
-    ::google::protobuf::internal::MergeFromFail(__FILE__, __LINE__);
-  }
-  if (from.alivereq().size() > 0) {
-
-    alivereq_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.alivereq_);
-  }
-}
-
-void aliveRequest::CopyFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_copy_from_start:helloworld.aliveRequest)
-  if (&from == this) return;
-  Clear();
-  MergeFrom(from);
-}
-
-void aliveRequest::CopyFrom(const aliveRequest& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:helloworld.aliveRequest)
-  if (&from == this) return;
-  Clear();
-  MergeFrom(from);
-}
-
-bool aliveRequest::IsInitialized() const {
-
-  return true;
-}
-
-void aliveRequest::Swap(aliveRequest* other) {
-  if (other == this) return;
-  InternalSwap(other);
-}
-void aliveRequest::InternalSwap(aliveRequest* other) {
-  alivereq_.Swap(&other->alivereq_);
-  _internal_metadata_.Swap(&other->_internal_metadata_);
-  std::swap(_cached_size_, other->_cached_size_);
-}
-
-::google::protobuf::Metadata aliveRequest::GetMetadata() const {
-  protobuf_AssignDescriptorsOnce();
-  ::google::protobuf::Metadata metadata;
-  metadata.descriptor = aliveRequest_descriptor_;
-  metadata.reflection = aliveRequest_reflection_;
-  return metadata;
-}
-
-#if PROTOBUF_INLINE_NOT_IN_HEADERS
-// aliveRequest
-
-// optional string alivereq = 1;
-void aliveRequest::clear_alivereq() {
-  alivereq_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-}
- const ::std::string& aliveRequest::alivereq() const {
-  // @@protoc_insertion_point(field_get:helloworld.aliveRequest.alivereq)
-  return alivereq_.GetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-}
- void aliveRequest::set_alivereq(const ::std::string& value) {
+ void HelloRequest::set_type(::helloworld::HelloRequest_rpcType value) {
   
-  alivereq_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
-  // @@protoc_insertion_point(field_set:helloworld.aliveRequest.alivereq)
-}
- void aliveRequest::set_alivereq(const char* value) {
-  
-  alivereq_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
-  // @@protoc_insertion_point(field_set_char:helloworld.aliveRequest.alivereq)
-}
- void aliveRequest::set_alivereq(const char* value, size_t size) {
-  
-  alivereq_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
-      ::std::string(reinterpret_cast<const char*>(value), size));
-  // @@protoc_insertion_point(field_set_pointer:helloworld.aliveRequest.alivereq)
-}
- ::std::string* aliveRequest::mutable_alivereq() {
-  
-  // @@protoc_insertion_point(field_mutable:helloworld.aliveRequest.alivereq)
-  return alivereq_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-}
- ::std::string* aliveRequest::release_alivereq() {
-  // @@protoc_insertion_point(field_release:helloworld.aliveRequest.alivereq)
-  
-  return alivereq_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-}
- void aliveRequest::set_allocated_alivereq(::std::string* alivereq) {
-  if (alivereq != NULL) {
-    
-  } else {
-    
-  }
-  alivereq_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), alivereq);
-  // @@protoc_insertion_point(field_set_allocated:helloworld.aliveRequest.alivereq)
+  type_ = value;
+  // @@protoc_insertion_point(field_set:helloworld.HelloRequest.type)
 }
 
 #endif  // PROTOBUF_INLINE_NOT_IN_HEADERS
@@ -1026,290 +771,6 @@ void HelloReply::clear_message() {
   }
   message_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), message);
   // @@protoc_insertion_point(field_set_allocated:helloworld.HelloReply.message)
-}
-
-#endif  // PROTOBUF_INLINE_NOT_IN_HEADERS
-
-// ===================================================================
-
-#if !defined(_MSC_VER) || _MSC_VER >= 1900
-const int aliveReply::kAliverepFieldNumber;
-#endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
-
-aliveReply::aliveReply()
-  : ::google::protobuf::Message(), _internal_metadata_(NULL) {
-  SharedCtor();
-  // @@protoc_insertion_point(constructor:helloworld.aliveReply)
-}
-
-void aliveReply::InitAsDefaultInstance() {
-  _is_default_instance_ = true;
-}
-
-aliveReply::aliveReply(const aliveReply& from)
-  : ::google::protobuf::Message(),
-    _internal_metadata_(NULL) {
-  SharedCtor();
-  MergeFrom(from);
-  // @@protoc_insertion_point(copy_constructor:helloworld.aliveReply)
-}
-
-void aliveReply::SharedCtor() {
-    _is_default_instance_ = false;
-  ::google::protobuf::internal::GetEmptyString();
-  _cached_size_ = 0;
-  aliverep_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-}
-
-aliveReply::~aliveReply() {
-  // @@protoc_insertion_point(destructor:helloworld.aliveReply)
-  SharedDtor();
-}
-
-void aliveReply::SharedDtor() {
-  aliverep_.DestroyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-  if (this != default_instance_) {
-  }
-}
-
-void aliveReply::SetCachedSize(int size) const {
-  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
-  _cached_size_ = size;
-  GOOGLE_SAFE_CONCURRENT_WRITES_END();
-}
-const ::google::protobuf::Descriptor* aliveReply::descriptor() {
-  protobuf_AssignDescriptorsOnce();
-  return aliveReply_descriptor_;
-}
-
-const aliveReply& aliveReply::default_instance() {
-  if (default_instance_ == NULL) protobuf_AddDesc_helloworld_2eproto();
-  return *default_instance_;
-}
-
-aliveReply* aliveReply::default_instance_ = NULL;
-
-aliveReply* aliveReply::New(::google::protobuf::Arena* arena) const {
-  aliveReply* n = new aliveReply;
-  if (arena != NULL) {
-    arena->Own(n);
-  }
-  return n;
-}
-
-void aliveReply::Clear() {
-// @@protoc_insertion_point(message_clear_start:helloworld.aliveReply)
-  aliverep_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-}
-
-bool aliveReply::MergePartialFromCodedStream(
-    ::google::protobuf::io::CodedInputStream* input) {
-#define DO_(EXPRESSION) if (!GOOGLE_PREDICT_TRUE(EXPRESSION)) goto failure
-  ::google::protobuf::uint32 tag;
-  // @@protoc_insertion_point(parse_start:helloworld.aliveReply)
-  for (;;) {
-    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
-    tag = p.first;
-    if (!p.second) goto handle_unusual;
-    switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // optional string aliverep = 1;
-      case 1: {
-        if (tag == 10) {
-          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
-                input, this->mutable_aliverep()));
-          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-            this->aliverep().data(), this->aliverep().length(),
-            ::google::protobuf::internal::WireFormatLite::PARSE,
-            "helloworld.aliveReply.aliverep"));
-        } else {
-          goto handle_unusual;
-        }
-        if (input->ExpectAtEnd()) goto success;
-        break;
-      }
-
-      default: {
-      handle_unusual:
-        if (tag == 0 ||
-            ::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-            ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
-          goto success;
-        }
-        DO_(::google::protobuf::internal::WireFormatLite::SkipField(input, tag));
-        break;
-      }
-    }
-  }
-success:
-  // @@protoc_insertion_point(parse_success:helloworld.aliveReply)
-  return true;
-failure:
-  // @@protoc_insertion_point(parse_failure:helloworld.aliveReply)
-  return false;
-#undef DO_
-}
-
-void aliveReply::SerializeWithCachedSizes(
-    ::google::protobuf::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:helloworld.aliveReply)
-  // optional string aliverep = 1;
-  if (this->aliverep().size() > 0) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->aliverep().data(), this->aliverep().length(),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "helloworld.aliveReply.aliverep");
-    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
-      1, this->aliverep(), output);
-  }
-
-  // @@protoc_insertion_point(serialize_end:helloworld.aliveReply)
-}
-
-::google::protobuf::uint8* aliveReply::InternalSerializeWithCachedSizesToArray(
-    bool deterministic, ::google::protobuf::uint8* target) const {
-  // @@protoc_insertion_point(serialize_to_array_start:helloworld.aliveReply)
-  // optional string aliverep = 1;
-  if (this->aliverep().size() > 0) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->aliverep().data(), this->aliverep().length(),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "helloworld.aliveReply.aliverep");
-    target =
-      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
-        1, this->aliverep(), target);
-  }
-
-  // @@protoc_insertion_point(serialize_to_array_end:helloworld.aliveReply)
-  return target;
-}
-
-int aliveReply::ByteSize() const {
-// @@protoc_insertion_point(message_byte_size_start:helloworld.aliveReply)
-  int total_size = 0;
-
-  // optional string aliverep = 1;
-  if (this->aliverep().size() > 0) {
-    total_size += 1 +
-      ::google::protobuf::internal::WireFormatLite::StringSize(
-        this->aliverep());
-  }
-
-  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
-  _cached_size_ = total_size;
-  GOOGLE_SAFE_CONCURRENT_WRITES_END();
-  return total_size;
-}
-
-void aliveReply::MergeFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_merge_from_start:helloworld.aliveReply)
-  if (GOOGLE_PREDICT_FALSE(&from == this)) {
-    ::google::protobuf::internal::MergeFromFail(__FILE__, __LINE__);
-  }
-  const aliveReply* source = 
-      ::google::protobuf::internal::DynamicCastToGenerated<const aliveReply>(
-          &from);
-  if (source == NULL) {
-  // @@protoc_insertion_point(generalized_merge_from_cast_fail:helloworld.aliveReply)
-    ::google::protobuf::internal::ReflectionOps::Merge(from, this);
-  } else {
-  // @@protoc_insertion_point(generalized_merge_from_cast_success:helloworld.aliveReply)
-    MergeFrom(*source);
-  }
-}
-
-void aliveReply::MergeFrom(const aliveReply& from) {
-// @@protoc_insertion_point(class_specific_merge_from_start:helloworld.aliveReply)
-  if (GOOGLE_PREDICT_FALSE(&from == this)) {
-    ::google::protobuf::internal::MergeFromFail(__FILE__, __LINE__);
-  }
-  if (from.aliverep().size() > 0) {
-
-    aliverep_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.aliverep_);
-  }
-}
-
-void aliveReply::CopyFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_copy_from_start:helloworld.aliveReply)
-  if (&from == this) return;
-  Clear();
-  MergeFrom(from);
-}
-
-void aliveReply::CopyFrom(const aliveReply& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:helloworld.aliveReply)
-  if (&from == this) return;
-  Clear();
-  MergeFrom(from);
-}
-
-bool aliveReply::IsInitialized() const {
-
-  return true;
-}
-
-void aliveReply::Swap(aliveReply* other) {
-  if (other == this) return;
-  InternalSwap(other);
-}
-void aliveReply::InternalSwap(aliveReply* other) {
-  aliverep_.Swap(&other->aliverep_);
-  _internal_metadata_.Swap(&other->_internal_metadata_);
-  std::swap(_cached_size_, other->_cached_size_);
-}
-
-::google::protobuf::Metadata aliveReply::GetMetadata() const {
-  protobuf_AssignDescriptorsOnce();
-  ::google::protobuf::Metadata metadata;
-  metadata.descriptor = aliveReply_descriptor_;
-  metadata.reflection = aliveReply_reflection_;
-  return metadata;
-}
-
-#if PROTOBUF_INLINE_NOT_IN_HEADERS
-// aliveReply
-
-// optional string aliverep = 1;
-void aliveReply::clear_aliverep() {
-  aliverep_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-}
- const ::std::string& aliveReply::aliverep() const {
-  // @@protoc_insertion_point(field_get:helloworld.aliveReply.aliverep)
-  return aliverep_.GetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-}
- void aliveReply::set_aliverep(const ::std::string& value) {
-  
-  aliverep_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
-  // @@protoc_insertion_point(field_set:helloworld.aliveReply.aliverep)
-}
- void aliveReply::set_aliverep(const char* value) {
-  
-  aliverep_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
-  // @@protoc_insertion_point(field_set_char:helloworld.aliveReply.aliverep)
-}
- void aliveReply::set_aliverep(const char* value, size_t size) {
-  
-  aliverep_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
-      ::std::string(reinterpret_cast<const char*>(value), size));
-  // @@protoc_insertion_point(field_set_pointer:helloworld.aliveReply.aliverep)
-}
- ::std::string* aliveReply::mutable_aliverep() {
-  
-  // @@protoc_insertion_point(field_mutable:helloworld.aliveReply.aliverep)
-  return aliverep_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-}
- ::std::string* aliveReply::release_aliverep() {
-  // @@protoc_insertion_point(field_release:helloworld.aliveReply.aliverep)
-  
-  return aliverep_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-}
- void aliveReply::set_allocated_aliverep(::std::string* aliverep) {
-  if (aliverep != NULL) {
-    
-  } else {
-    
-  }
-  aliverep_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), aliverep);
-  // @@protoc_insertion_point(field_set_allocated:helloworld.aliveReply.aliverep)
 }
 
 #endif  // PROTOBUF_INLINE_NOT_IN_HEADERS

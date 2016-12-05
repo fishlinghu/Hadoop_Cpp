@@ -50,33 +50,21 @@ using grpc::Status;
 using helloworld::HelloRequest;
 using helloworld::HelloReply;
 using helloworld::Greeter;
-// using helloworld::HelloRequest_rpcType;
+using helloworld::Heartbeat;
+using helloworld::aliveRequest;
+using helloworld::aliveReply;
 
-enum RPCType {GREETER, HB};
-// HelloRequest_rpcType rpc_type;
 
 class GreeterClient {
-
   public:
     explicit GreeterClient(std::shared_ptr<Channel> channel)
             : stub_(Greeter::NewStub(channel)) {}
 
     // Assembles the client's payload and sends it to the server.
-    void SayHello(const std::string& user, RPCType rpcType) {
+    void SayHello(const std::string& user) {
         // Data we are sending to the server.
         HelloRequest request;
-        // HelloRequest_rpcType rpc_type= rpcType;
-
-        if (rpcType == GREETER) 
-        {
-            request.set_name(user); // caller will set the name appropriately
-            request.set_type(static_cast< ::helloworld::HelloRequest_rpcType > (rpcType)); 
-        }
-        else if (rpcType == HB)
-        {
-            request.set_name(user); // caller will set the name appropriately
-            request.set_type(static_cast< ::helloworld::HelloRequest_rpcType > (rpcType)); 
-        }
+        request.set_name(user);
 
         // Call object to store rpc data
         AsyncClientCall* call = new AsyncClientCall;
@@ -144,14 +132,86 @@ class GreeterClient {
     // The producer-consumer queue we use to communicate asynchronously with the
     // gRPC runtime.
     CompletionQueue cq_;
-
-    // HelloRequest_rpcType rpc_type;
-
-    RPCType rpcType;
 };
 
 
 /*initiatiate a class for communication*/
+class HeartbeatClient {
+    public:
+    explicit HeartbeatClient(std::shared_ptr<Channel> channel)
+            : stub_(Heartbeat::NewStub(channel)) {}
+
+    // Assembles the client's payload, sends it to the server
+    void HeartBeat(const std::string& message) {
+        // Data we are sending to the server.
+        aliveRequest aRequest;
+        aRequest.set_alivereq(message);
+
+        // call object to store rpc data
+        HBAsyncClientCall* HBCall = new HBAsyncClientCall;
+
+        // stub_->AsyncSayHello() performs the RPC call, returning an instance to
+        // store in "HBCall". Because we are using the asynchronous API, we need to
+        // hold on to the "HBCall" instance in order to get updates on the ongoing RPC.
+        HBCall->HBresponse_ = stub_->AsyncHeartBeat(&HBCall->HBcontext, aRequest, &HBcq_);
+
+        // Request that, upon completion of the RPC, "HBreply" be updated with the
+        // server's response; "HBstatus" with the indication of whether the operation
+        // was successful. Tag the requesrt with memory address of the call object.
+
+        HBCall->HBresponse_->Finish(&HBCall->HBreply, &HBCall->HBstatus, (void*)HBCall);
+    }
+
+    // Loop while listening for completed responses.
+    // Prints out the response from the server.
+    void HBAsyncCompleteRpc() {
+        void* HBgot_tag;
+        bool ok = false;
+
+        // Block until the next result is available in the completion queue "cq".
+        while (HBcq_.AsyncNext(&HBgot_tag, &ok, std::chrono::system_clock::now()+std::chrono::milliseconds(50))) {
+            // The tag in this example is the memory location of the call object
+            HBAsyncClientCall* HBCall = static_cast<HBAsyncClientCall*>(HBgot_tag);
+
+            // Verify that the request was completed successfully. Note that "ok"
+            // corresponds solely to the request for updates introduced by Finish().
+            GPR_ASSERT(ok);
+
+            if (HBCall->HBstatus.ok())
+                std::cout << "Greeter received: " << HBCall->HBreply.aliverep() << std::endl;
+            else
+                std::cout << "RPC failed" << std::endl;
+
+            // Once we're complete, deallocate the HBCall object.
+            delete HBCall;
+        }
+    }
+  private:
+
+    // struct for keeping state and data information
+    struct HBAsyncClientCall {
+        // Container for the data we expect from the server.
+        aliveReply HBreply;
+
+        // Context for the client. It could be used to convey extra information to
+        // the server and/or tweak certain RPC behaviors.
+        ClientContext HBcontext;
+
+        // Storage for the status of the RPC upon completion.
+        Status HBstatus;
+
+
+        std::unique_ptr<ClientAsyncResponseReader<aliveReply>> HBresponse_;
+    };
+
+    // Out of the passed in Channel comes the stub, stored here, our view of the
+    // server's exposed services.
+    std::unique_ptr<Heartbeat::Stub> stub_;
+
+    // The producer-consumer queue we use to communicate asynchronously with the
+    // gRPC runtime.
+    CompletionQueue HBcq_;    
+};
 
 int main(int argc, char** argv) {
 
@@ -162,32 +222,31 @@ int main(int argc, char** argv) {
     // (use of InsecureChannelCredentials()).
     GreeterClient greeter(grpc::CreateChannel(
             "localhost:50051", grpc::InsecureChannelCredentials()));
-    // just create another object of same class type for heartbeat messages..
-    GreeterClient hb(grpc::CreateChannel(
-            "localhost:50051", grpc::InsecureChannelCredentials()));
 
+    HeartbeatClient heartbeat(grpc::CreateChannel(
+            "localhost:50051", grpc::InsecureChannelCredentials()));
 
     // Spawn reader thread that loops indefinitely
     std::thread thread_ = std::thread(&GreeterClient::AsyncCompleteRpc, &greeter);
-    std::thread thread1_ = std::thread(&GreeterClient::AsyncCompleteRpc, &hb);
+
+    // Spawn another reader thread for heartbeat
+    std::thread thread1_ = std::thread(&HeartbeatClient::HBAsyncCompleteRpc, &heartbeat);
 
     for (int i = 0; i < 100; i++) {
         std::string user("world " + std::to_string(i));
-        greeter.SayHello(user, GREETER);  // The actual RPC call!
+        greeter.SayHello(user);  // The actual RPC call!
     }
 
-    // send RPC call each second
     // send RPC call each second
     while(true) {
-        std::string user("Are you alive?: ");
-        hb.SayHello(user, HB);  // The actual RPC call! 
-        usleep(1000000);  // repeat after each second
+        std::string message("Are you alive?: ");
+        heartbeat.HeartBeat(message);  // The actual RPC call!  
+        usleep(1000);  // repeat after each second
     }
 
-
-    std::cout << "Press control-c to quit" << std::endl << std::endl;
+    std::cout << std::endl << "Press control-c to quit" << std::endl << std::endl;
     thread_.join();  //blocks forever
-    thread1_.join();  //blocks forever
+    thread1_.join();
 
     return 0;
 }

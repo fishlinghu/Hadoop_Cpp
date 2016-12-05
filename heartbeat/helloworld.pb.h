@@ -26,6 +26,7 @@
 #include <google/protobuf/message.h>
 #include <google/protobuf/repeated_field.h>
 #include <google/protobuf/extension_set.h>
+#include <google/protobuf/generated_enum_reflection.h>
 #include <google/protobuf/unknown_field_set.h>
 // @@protoc_insertion_point(includes)
 
@@ -38,9 +39,28 @@ void protobuf_ShutdownFile_helloworld_2eproto();
 
 class HelloReply;
 class HelloRequest;
-class aliveReply;
-class aliveRequest;
 
+enum HelloRequest_rpcType {
+  HelloRequest_rpcType_GREETER = 0,
+  HelloRequest_rpcType_HB = 1,
+  HelloRequest_rpcType_HelloRequest_rpcType_INT_MIN_SENTINEL_DO_NOT_USE_ = ::google::protobuf::kint32min,
+  HelloRequest_rpcType_HelloRequest_rpcType_INT_MAX_SENTINEL_DO_NOT_USE_ = ::google::protobuf::kint32max
+};
+bool HelloRequest_rpcType_IsValid(int value);
+const HelloRequest_rpcType HelloRequest_rpcType_rpcType_MIN = HelloRequest_rpcType_GREETER;
+const HelloRequest_rpcType HelloRequest_rpcType_rpcType_MAX = HelloRequest_rpcType_HB;
+const int HelloRequest_rpcType_rpcType_ARRAYSIZE = HelloRequest_rpcType_rpcType_MAX + 1;
+
+const ::google::protobuf::EnumDescriptor* HelloRequest_rpcType_descriptor();
+inline const ::std::string& HelloRequest_rpcType_Name(HelloRequest_rpcType value) {
+  return ::google::protobuf::internal::NameOfEnum(
+    HelloRequest_rpcType_descriptor(), value);
+}
+inline bool HelloRequest_rpcType_Parse(
+    const ::std::string& name, HelloRequest_rpcType* value) {
+  return ::google::protobuf::internal::ParseNamedEnum<HelloRequest_rpcType>(
+    HelloRequest_rpcType_descriptor(), name, value);
+}
 // ===================================================================
 
 class HelloRequest : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:helloworld.HelloRequest) */ {
@@ -101,6 +121,32 @@ class HelloRequest : public ::google::protobuf::Message /* @@protoc_insertion_po
 
   // nested types ----------------------------------------------------
 
+  typedef HelloRequest_rpcType rpcType;
+  static const rpcType GREETER =
+    HelloRequest_rpcType_GREETER;
+  static const rpcType HB =
+    HelloRequest_rpcType_HB;
+  static inline bool rpcType_IsValid(int value) {
+    return HelloRequest_rpcType_IsValid(value);
+  }
+  static const rpcType rpcType_MIN =
+    HelloRequest_rpcType_rpcType_MIN;
+  static const rpcType rpcType_MAX =
+    HelloRequest_rpcType_rpcType_MAX;
+  static const int rpcType_ARRAYSIZE =
+    HelloRequest_rpcType_rpcType_ARRAYSIZE;
+  static inline const ::google::protobuf::EnumDescriptor*
+  rpcType_descriptor() {
+    return HelloRequest_rpcType_descriptor();
+  }
+  static inline const ::std::string& rpcType_Name(rpcType value) {
+    return HelloRequest_rpcType_Name(value);
+  }
+  static inline bool rpcType_Parse(const ::std::string& name,
+      rpcType* value) {
+    return HelloRequest_rpcType_Parse(name, value);
+  }
+
   // accessors -------------------------------------------------------
 
   // optional string name = 1;
@@ -114,12 +160,19 @@ class HelloRequest : public ::google::protobuf::Message /* @@protoc_insertion_po
   ::std::string* release_name();
   void set_allocated_name(::std::string* name);
 
+  // optional .helloworld.HelloRequest.rpcType type = 2;
+  void clear_type();
+  static const int kTypeFieldNumber = 2;
+  ::helloworld::HelloRequest_rpcType type() const;
+  void set_type(::helloworld::HelloRequest_rpcType value);
+
   // @@protoc_insertion_point(class_scope:helloworld.HelloRequest)
  private:
 
   ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
   bool _is_default_instance_;
   ::google::protobuf::internal::ArenaStringPtr name_;
+  int type_;
   mutable int _cached_size_;
   friend void  protobuf_AddDesc_helloworld_2eproto();
   friend void protobuf_AssignDesc_helloworld_2eproto();
@@ -127,93 +180,6 @@ class HelloRequest : public ::google::protobuf::Message /* @@protoc_insertion_po
 
   void InitAsDefaultInstance();
   static HelloRequest* default_instance_;
-};
-// -------------------------------------------------------------------
-
-class aliveRequest : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:helloworld.aliveRequest) */ {
- public:
-  aliveRequest();
-  virtual ~aliveRequest();
-
-  aliveRequest(const aliveRequest& from);
-
-  inline aliveRequest& operator=(const aliveRequest& from) {
-    CopyFrom(from);
-    return *this;
-  }
-
-  static const ::google::protobuf::Descriptor* descriptor();
-  static const aliveRequest& default_instance();
-
-  void Swap(aliveRequest* other);
-
-  // implements Message ----------------------------------------------
-
-  inline aliveRequest* New() const { return New(NULL); }
-
-  aliveRequest* New(::google::protobuf::Arena* arena) const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const aliveRequest& from);
-  void MergeFrom(const aliveRequest& from);
-  void Clear();
-  bool IsInitialized() const;
-
-  int ByteSize() const;
-  bool MergePartialFromCodedStream(
-      ::google::protobuf::io::CodedInputStream* input);
-  void SerializeWithCachedSizes(
-      ::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
-      bool deterministic, ::google::protobuf::uint8* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const {
-    return InternalSerializeWithCachedSizesToArray(false, output);
-  }
-  int GetCachedSize() const { return _cached_size_; }
-  private:
-  void SharedCtor();
-  void SharedDtor();
-  void SetCachedSize(int size) const;
-  void InternalSwap(aliveRequest* other);
-  private:
-  inline ::google::protobuf::Arena* GetArenaNoVirtual() const {
-    return _internal_metadata_.arena();
-  }
-  inline void* MaybeArenaPtr() const {
-    return _internal_metadata_.raw_arena_ptr();
-  }
-  public:
-
-  ::google::protobuf::Metadata GetMetadata() const;
-
-  // nested types ----------------------------------------------------
-
-  // accessors -------------------------------------------------------
-
-  // optional string alivereq = 1;
-  void clear_alivereq();
-  static const int kAlivereqFieldNumber = 1;
-  const ::std::string& alivereq() const;
-  void set_alivereq(const ::std::string& value);
-  void set_alivereq(const char* value);
-  void set_alivereq(const char* value, size_t size);
-  ::std::string* mutable_alivereq();
-  ::std::string* release_alivereq();
-  void set_allocated_alivereq(::std::string* alivereq);
-
-  // @@protoc_insertion_point(class_scope:helloworld.aliveRequest)
- private:
-
-  ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
-  bool _is_default_instance_;
-  ::google::protobuf::internal::ArenaStringPtr alivereq_;
-  mutable int _cached_size_;
-  friend void  protobuf_AddDesc_helloworld_2eproto();
-  friend void protobuf_AssignDesc_helloworld_2eproto();
-  friend void protobuf_ShutdownFile_helloworld_2eproto();
-
-  void InitAsDefaultInstance();
-  static aliveRequest* default_instance_;
 };
 // -------------------------------------------------------------------
 
@@ -302,93 +268,6 @@ class HelloReply : public ::google::protobuf::Message /* @@protoc_insertion_poin
   void InitAsDefaultInstance();
   static HelloReply* default_instance_;
 };
-// -------------------------------------------------------------------
-
-class aliveReply : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:helloworld.aliveReply) */ {
- public:
-  aliveReply();
-  virtual ~aliveReply();
-
-  aliveReply(const aliveReply& from);
-
-  inline aliveReply& operator=(const aliveReply& from) {
-    CopyFrom(from);
-    return *this;
-  }
-
-  static const ::google::protobuf::Descriptor* descriptor();
-  static const aliveReply& default_instance();
-
-  void Swap(aliveReply* other);
-
-  // implements Message ----------------------------------------------
-
-  inline aliveReply* New() const { return New(NULL); }
-
-  aliveReply* New(::google::protobuf::Arena* arena) const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const aliveReply& from);
-  void MergeFrom(const aliveReply& from);
-  void Clear();
-  bool IsInitialized() const;
-
-  int ByteSize() const;
-  bool MergePartialFromCodedStream(
-      ::google::protobuf::io::CodedInputStream* input);
-  void SerializeWithCachedSizes(
-      ::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
-      bool deterministic, ::google::protobuf::uint8* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const {
-    return InternalSerializeWithCachedSizesToArray(false, output);
-  }
-  int GetCachedSize() const { return _cached_size_; }
-  private:
-  void SharedCtor();
-  void SharedDtor();
-  void SetCachedSize(int size) const;
-  void InternalSwap(aliveReply* other);
-  private:
-  inline ::google::protobuf::Arena* GetArenaNoVirtual() const {
-    return _internal_metadata_.arena();
-  }
-  inline void* MaybeArenaPtr() const {
-    return _internal_metadata_.raw_arena_ptr();
-  }
-  public:
-
-  ::google::protobuf::Metadata GetMetadata() const;
-
-  // nested types ----------------------------------------------------
-
-  // accessors -------------------------------------------------------
-
-  // optional string aliverep = 1;
-  void clear_aliverep();
-  static const int kAliverepFieldNumber = 1;
-  const ::std::string& aliverep() const;
-  void set_aliverep(const ::std::string& value);
-  void set_aliverep(const char* value);
-  void set_aliverep(const char* value, size_t size);
-  ::std::string* mutable_aliverep();
-  ::std::string* release_aliverep();
-  void set_allocated_aliverep(::std::string* aliverep);
-
-  // @@protoc_insertion_point(class_scope:helloworld.aliveReply)
- private:
-
-  ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
-  bool _is_default_instance_;
-  ::google::protobuf::internal::ArenaStringPtr aliverep_;
-  mutable int _cached_size_;
-  friend void  protobuf_AddDesc_helloworld_2eproto();
-  friend void protobuf_AssignDesc_helloworld_2eproto();
-  friend void protobuf_ShutdownFile_helloworld_2eproto();
-
-  void InitAsDefaultInstance();
-  static aliveReply* default_instance_;
-};
 // ===================================================================
 
 
@@ -441,52 +320,18 @@ inline void HelloRequest::set_allocated_name(::std::string* name) {
   // @@protoc_insertion_point(field_set_allocated:helloworld.HelloRequest.name)
 }
 
-// -------------------------------------------------------------------
-
-// aliveRequest
-
-// optional string alivereq = 1;
-inline void aliveRequest::clear_alivereq() {
-  alivereq_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+// optional .helloworld.HelloRequest.rpcType type = 2;
+inline void HelloRequest::clear_type() {
+  type_ = 0;
 }
-inline const ::std::string& aliveRequest::alivereq() const {
-  // @@protoc_insertion_point(field_get:helloworld.aliveRequest.alivereq)
-  return alivereq_.GetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+inline ::helloworld::HelloRequest_rpcType HelloRequest::type() const {
+  // @@protoc_insertion_point(field_get:helloworld.HelloRequest.type)
+  return static_cast< ::helloworld::HelloRequest_rpcType >(type_);
 }
-inline void aliveRequest::set_alivereq(const ::std::string& value) {
+inline void HelloRequest::set_type(::helloworld::HelloRequest_rpcType value) {
   
-  alivereq_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
-  // @@protoc_insertion_point(field_set:helloworld.aliveRequest.alivereq)
-}
-inline void aliveRequest::set_alivereq(const char* value) {
-  
-  alivereq_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
-  // @@protoc_insertion_point(field_set_char:helloworld.aliveRequest.alivereq)
-}
-inline void aliveRequest::set_alivereq(const char* value, size_t size) {
-  
-  alivereq_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
-      ::std::string(reinterpret_cast<const char*>(value), size));
-  // @@protoc_insertion_point(field_set_pointer:helloworld.aliveRequest.alivereq)
-}
-inline ::std::string* aliveRequest::mutable_alivereq() {
-  
-  // @@protoc_insertion_point(field_mutable:helloworld.aliveRequest.alivereq)
-  return alivereq_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-}
-inline ::std::string* aliveRequest::release_alivereq() {
-  // @@protoc_insertion_point(field_release:helloworld.aliveRequest.alivereq)
-  
-  return alivereq_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-}
-inline void aliveRequest::set_allocated_alivereq(::std::string* alivereq) {
-  if (alivereq != NULL) {
-    
-  } else {
-    
-  }
-  alivereq_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), alivereq);
-  // @@protoc_insertion_point(field_set_allocated:helloworld.aliveRequest.alivereq)
+  type_ = value;
+  // @@protoc_insertion_point(field_set:helloworld.HelloRequest.type)
 }
 
 // -------------------------------------------------------------------
@@ -537,65 +382,27 @@ inline void HelloReply::set_allocated_message(::std::string* message) {
   // @@protoc_insertion_point(field_set_allocated:helloworld.HelloReply.message)
 }
 
-// -------------------------------------------------------------------
-
-// aliveReply
-
-// optional string aliverep = 1;
-inline void aliveReply::clear_aliverep() {
-  aliverep_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-}
-inline const ::std::string& aliveReply::aliverep() const {
-  // @@protoc_insertion_point(field_get:helloworld.aliveReply.aliverep)
-  return aliverep_.GetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-}
-inline void aliveReply::set_aliverep(const ::std::string& value) {
-  
-  aliverep_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
-  // @@protoc_insertion_point(field_set:helloworld.aliveReply.aliverep)
-}
-inline void aliveReply::set_aliverep(const char* value) {
-  
-  aliverep_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
-  // @@protoc_insertion_point(field_set_char:helloworld.aliveReply.aliverep)
-}
-inline void aliveReply::set_aliverep(const char* value, size_t size) {
-  
-  aliverep_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
-      ::std::string(reinterpret_cast<const char*>(value), size));
-  // @@protoc_insertion_point(field_set_pointer:helloworld.aliveReply.aliverep)
-}
-inline ::std::string* aliveReply::mutable_aliverep() {
-  
-  // @@protoc_insertion_point(field_mutable:helloworld.aliveReply.aliverep)
-  return aliverep_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-}
-inline ::std::string* aliveReply::release_aliverep() {
-  // @@protoc_insertion_point(field_release:helloworld.aliveReply.aliverep)
-  
-  return aliverep_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-}
-inline void aliveReply::set_allocated_aliverep(::std::string* aliverep) {
-  if (aliverep != NULL) {
-    
-  } else {
-    
-  }
-  aliverep_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), aliverep);
-  // @@protoc_insertion_point(field_set_allocated:helloworld.aliveReply.aliverep)
-}
-
 #endif  // !PROTOBUF_INLINE_NOT_IN_HEADERS
-// -------------------------------------------------------------------
-
-// -------------------------------------------------------------------
-
 // -------------------------------------------------------------------
 
 
 // @@protoc_insertion_point(namespace_scope)
 
 }  // namespace helloworld
+
+#ifndef SWIG
+namespace google {
+namespace protobuf {
+
+template <> struct is_proto_enum< ::helloworld::HelloRequest_rpcType> : ::google::protobuf::internal::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::helloworld::HelloRequest_rpcType>() {
+  return ::helloworld::HelloRequest_rpcType_descriptor();
+}
+
+}  // namespace protobuf
+}  // namespace google
+#endif  // SWIG
 
 // @@protoc_insertion_point(global_scope)
 

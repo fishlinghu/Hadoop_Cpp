@@ -43,34 +43,27 @@ service Greeter {
 }
 
 // The heartbeat service definition.
-//service Heartbeat {
+service Heartbeat {
   // I am alive message
-//  rpc HeartBeat (aliveRequest) returns (aliveReply) {}	
-//}
+  rpc HeartBeat (aliveRequest) returns (aliveReply) {}	
+}
 
 // The request message containing the user's name.
 message HelloRequest {
   string name = 1;
-//  int32 type = 2;
-  enum rpcType {
-	GREETER = 0;
-	HB = 1;
-  }
-  rpcType type = 2;
 }
 
 // The request message 'are you alive?' from client to server
-//message aliveRequest {
-//  string alivereq = 1;
-//}
+message aliveRequest {
+  string alivereq = 1;
+}
 
 // The response message containing the greetings
 message HelloReply {
   string message = 1;
- 
 }
 
 // The response message containing the rely to 'are you alive?'m request
-//message aliveReply {
-//  string aliverep = 1;
-//}
+message aliveReply {
+  string aliverep = 1;
+}

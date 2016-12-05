@@ -56,46 +56,5 @@ Greeter::Service::~Service() {
 }
 
 
-static const char* Heartbeat_method_names[] = {
-  "/helloworld.Heartbeat/HeartBeat",
-};
-
-std::unique_ptr< Heartbeat::Stub> Heartbeat::NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options) {
-  std::unique_ptr< Heartbeat::Stub> stub(new Heartbeat::Stub(channel));
-  return stub;
-}
-
-Heartbeat::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel)
-  : channel_(channel), rpcmethod_HeartBeat_(Heartbeat_method_names[0], ::grpc::RpcMethod::NORMAL_RPC, channel)
-  {}
-
-::grpc::Status Heartbeat::Stub::HeartBeat(::grpc::ClientContext* context, const ::helloworld::aliveRequest& request, ::helloworld::aliveReply* response) {
-  return ::grpc::BlockingUnaryCall(channel_.get(), rpcmethod_HeartBeat_, context, request, response);
-}
-
-::grpc::ClientAsyncResponseReader< ::helloworld::aliveReply>* Heartbeat::Stub::AsyncHeartBeatRaw(::grpc::ClientContext* context, const ::helloworld::aliveRequest& request, ::grpc::CompletionQueue* cq) {
-  return new ::grpc::ClientAsyncResponseReader< ::helloworld::aliveReply>(channel_.get(), cq, rpcmethod_HeartBeat_, context, request);
-}
-
-Heartbeat::Service::Service() {
-  (void)Heartbeat_method_names;
-  AddMethod(new ::grpc::RpcServiceMethod(
-      Heartbeat_method_names[0],
-      ::grpc::RpcMethod::NORMAL_RPC,
-      new ::grpc::RpcMethodHandler< Heartbeat::Service, ::helloworld::aliveRequest, ::helloworld::aliveReply>(
-          std::mem_fn(&Heartbeat::Service::HeartBeat), this)));
-}
-
-Heartbeat::Service::~Service() {
-}
-
-::grpc::Status Heartbeat::Service::HeartBeat(::grpc::ServerContext* context, const ::helloworld::aliveRequest* request, ::helloworld::aliveReply* response) {
-  (void) context;
-  (void) request;
-  (void) response;
-  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-}
-
-
 }  // namespace helloworld
 
