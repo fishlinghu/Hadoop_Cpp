@@ -62,10 +62,11 @@ class Worker {
                 // Take in the "service" instance (in this case representing an asynchronous
                 // server) and the completion queue "cq" used for asynchronous communication
                 // with the gRPC runtime.
-                CallData(jobAssign::AsyncService* service, ServerCompletionQueue* cq)
+                CallData(jobAssign::AsyncService* service, ServerCompletionQueue* cq, Worker* ptr)
                     : service_(service), cq_(cq), responder_(&ctx_), status_(CREATE) {
                   // Invoke the serving logic right away.
-                  Proceed();
+                    parent = ptr;
+                    Proceed();
                 }
                 Worker *parent;
                 void Proceed();
@@ -121,8 +122,7 @@ void Worker::set_reducer_output_filename(shared_ptr<BaseReducer> reducer, string
 void Worker::HandleRpcs()
     {
     // Spawn a new CallData instance to serve new clients.
-    obj_CallData = new CallData(&service_, cq_.get());
-    obj_CallData->parent = this;
+    obj_CallData = new CallData(&service_, cq_.get(), this);
     void* tag;  // uniquely identifies a request.
     bool ok;
     while (true) 
@@ -158,7 +158,7 @@ void Worker::CallData::Proceed()
         // Spawn a new CallData instance to serve new clients while we process
         // the one for this CallData. The instance will deallocate itself as
         // part of its FINISH state.
-        new CallData(service_, cq_);
+        new CallData(service_, cq_, parent);
       
         // The actual processing.
         ///////////////////////////////////////////////////////////////////////////
