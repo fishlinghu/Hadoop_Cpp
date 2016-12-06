@@ -181,24 +181,29 @@ void Worker::CallData::Proceed()
                 ifstream infile(query_.file_path());
                 int data_size = query_.data_size();
                 int file_offset = query_.file_offset();
-                char* buffer = new char[data_size];
+                char* buffer = new char[data_size+1];
                 // file operation
                 infile.seekg(file_offset); // move the pointer to the offset
                 infile.read(buffer, data_size); // put so many character into the buffer
 
-                std::stringstream ss;
-                ss.str(buffer); // this will convert it into buffer
-                std::string line;
+                buffer[data_size] = 0;
+
+                //std::stringstream ss;
+                //ss.str(buffer); // this will convert it into buffer
+                //std::string line;
+                string bufStr(buffer);
 
                 string out_filename_for_master = query_.output_filename();
                 string mapper_output_filename = out_filename_for_master + "_tmp";
                 parent->set_mapper_output_filename(mapper, mapper_output_filename);
 
-                while(std::getline(ss, line))
-                    {
-                    line = line + " ";
-                    mapper->map(line); // this will call the emit() function for a given line
-                    }
+                //while(std::getline(ss, line))
+                    //{
+                    //line = line + " ";
+                    //mapper->map(line); // this will call the emit() function for a given line
+                    //}
+                cout << "Input for mapper: " << bufStr << endl;
+                mapper->map( bufStr);
                 
                 infile.close();
                 ///////////////////////////////////////////////////////////////////////
