@@ -133,8 +133,9 @@ void Worker::HandleRpcs()
         // The return value of Next should always be checked. This return value
         // tells us whether there is any kind of event or cq_ is shutting down.
         GPR_ASSERT(cq_->Next(&tag, &ok));
-        GPR_ASSERT(ok);
-        static_cast<CallData*>(tag)->Proceed();
+        //GPR_ASSERT(ok);
+        if(ok)
+            static_cast<CallData*>(tag)->Proceed();
         }
     }
 

@@ -192,16 +192,16 @@ bool Master::MasterGRPC::Check_result()
     // tells us whether there is any kind of event or the cq_ is shutting down.
     //GPR_ASSERT(cq.Next(&got_tag, &ok));
     
-    cq.Next(&got_tag, &ok);
-    //cq.AsyncNext(&got_tag, &ok, std::chrono::system_clock::now()+std::chrono::milliseconds(50));
+    //cq.Next(&got_tag, &ok);
+    cq.AsyncNext(&got_tag, &ok, std::chrono::system_clock::now()+std::chrono::milliseconds(50));
 
     // Verify that the result from "cq" corresponds, by its tag, our previous
     // request.
-    GPR_ASSERT(got_tag == (void*)1);
+    //GPR_ASSERT(got_tag == (void*)1);
     
     // ... and that the request was completed successfully. Note that "ok"
     // corresponds solely to the request for updates introduced by Finish().
-    GPR_ASSERT(ok);
+    //GPR_ASSERT(ok);
 
     // Act upon the status of the actual RPC.
     if (status.ok()) 
