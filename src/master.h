@@ -76,6 +76,7 @@ class Master {
 		
 		int num_of_worker;
 		int num_of_file_shard;
+		int num_of_output;
 
 		vector<string> map_output_filename_vec;
 		
@@ -122,6 +123,7 @@ Master::Master(const MapReduceSpec& mr_spec, const std::vector<FileShard>& file_
 		input_file_name.push_back( mr_spec.input_file_name[i] );
 		++i;
 		}
+	num_of_output = mr_spec.n_output_files;
 	}
 
 void Master::hi_worker()
@@ -214,6 +216,9 @@ bool Master::MasterGRPC::Check_result()
         }
 	}
 
+// define a function to check if the worker is alive
+
+
 /*void Master::run_map()
 	{
 	int i = 0;
@@ -272,6 +277,10 @@ void Master::run_map()
 					delete connection_vec[i]->contextPtr;
 					++task_finished;
 					}
+				else
+					{
+					// check if the server is alive
+					}
 				}
 			++i;
 			}
@@ -289,6 +298,10 @@ void Master::run_map()
 					worker_busy[i] = false;
 					delete connection_vec[i]->contextPtr;
 					++task_finished;	
+					}
+				else
+					{
+					// check if the server is alive
 					}
 				}
 			++i;
@@ -340,6 +353,10 @@ void Master::run_reduce()
 					delete connection_vec[i]->contextPtr;
 					++task_finished;
 					}
+				else
+					{
+					// check if the server is alive
+					}
 				}
 			++i;
 			}
@@ -358,6 +375,10 @@ void Master::run_reduce()
 					worker_busy[i] = false;
 					delete connection_vec[i]->contextPtr;
 					++task_finished;	
+					}
+				else
+					{
+					// check if the server is alive
 					}
 				}
 			++i;
@@ -495,21 +516,39 @@ void Master::sort_and_write()
 
 void Master::collect_result()
 	{
-	ofstream fout("output/final_result");
-	ifstream fin;
+	int size_per_file = reducer_input_filename_vec.size() / num_of_output; // average
+	
+	vector<int> size_vec(num_of_output, size_per_file);
 	int i = 0;
-	while(i < reducer_input_filename_vec.size())
+	while(i < reducer_input_filename_vec.size() % num_of_output)
 		{	
-		fin.open(reducer_input_filename_vec[i]+"_out");
-		fout << fin.rdbuf();
-		fin.close();
-		if(remove( reducer_input_filename_vec[i].c_str() )!=0)
-			cout << "Cannot remove file " << reducer_input_filename_vec[i] << endl;
-		if(remove( (reducer_input_filename_vec[i]+"_out").c_str() )!=0)
-			cout << "Cannot remove file " << reducer_input_filename_vec[i]+"_out" << endl;
+		++size_vec[i];
 		++i;
 		}
-	fout.close();
+	// number of lines of each output file is confirmed
+	int last_file_idx; // excluded idx
+	int k;
+	k = 0;
+	i = 0;
+	while(i < reducer_input_filename_vec.size())
+		{
+		last_file_idx = i + size_vec[k];
+		ofstream fout("output/"+to_string(k+1));
+		while(i < last_file_idx)
+			{	
+			ifstream fin;
+			fin.open(reducer_input_filename_vec[i]+"_out");
+			fout << fin.rdbuf();
+			fin.close();
+			if(remove( reducer_input_filename_vec[i].c_str() )!=0)
+				cout << "Cannot remove file " << reducer_input_filename_vec[i] << endl;
+			if(remove( (reducer_input_filename_vec[i]+"_out").c_str() )!=0)
+				cout << "Cannot remove file " << reducer_input_filename_vec[i]+"_out" << endl;
+			++i;
+			}
+		fout.close();
+		++k;
+		}
 	}
 
 /* CS6210_TASK: Here you go. once this function is called you will complete whole map reduce task and return true if succeeded */
