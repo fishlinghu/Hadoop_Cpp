@@ -53,6 +53,7 @@ class Master {
 				
 				//ClientContext context;
 				ClientContext* contextPtr;
+				ClientContext* contextPtrHB;
 
     			Master* caller;
     			// Container for the data we expect from the server.
@@ -81,6 +82,7 @@ class Master {
 
 		vector<string> map_output_filename_vec;
 		
+		vector<bool> worker_dead;
 		vector<string> worker_IP_vec;
 		vector<string> worker_port_vec;
 		vector<string> input_file_name;
@@ -115,6 +117,7 @@ Master::Master(const MapReduceSpec& mr_spec, const std::vector<FileShard>& file_
 		// cout << mr_spec.ipaddr_port_list[i].ipaddr << endl;
 		worker_IP_vec.push_back( mr_spec.ipaddr_port_list[i].ipaddr );
 		worker_port_vec.push_back( mr_spec.ipaddr_port_list[i].ports );
+		worker_dead.push_back( false );
 		++i;
 		}
 
@@ -159,8 +162,11 @@ void Master::MasterGRPC::AssignTask(int map_or_reduce, int task_id) //1 for map,
     	//info->set_data_size( 20 );
     	info->set_id_assigned_to_worker(1); // we do not use this
     	info->set_output_filename(caller->map_output_filename_vec[task_id]); //<---the name of output file
+    	contextPtr = new ClientContext(); // remember to delete it somewhere
+    	std::unique_ptr<ClientAsyncResponseReader<Worker_to_Master> > rpc( stub_->AsyncAssignTask(contextPtr, request, &cq) );
+    	rpc->Finish(&reply, &status, (void*)1);
 		}
-	else
+	else if(map_or_reduce == 2)
 		{	
 		info->set_file_path( caller->reducer_input_filename_vec[task_id] ); //<---the name of input file
     	info->set_file_offset( 0 ); // we do not use this
@@ -168,22 +174,35 @@ void Master::MasterGRPC::AssignTask(int map_or_reduce, int task_id) //1 for map,
     	info->set_data_size( 0 ); // we do not use this
     	info->set_id_assigned_to_worker(1); // we do not use this
     	info->set_output_filename( caller->reducer_input_filename_vec[task_id] + "_out" ); //<---the name of output file
+    	contextPtr = new ClientContext(); // remember to delete it somewhere
+    	std::unique_ptr<ClientAsyncResponseReader<Worker_to_Master> > rpc( stub_->AsyncAssignTask(contextPtr, request, &cq) );
+    	rpc->Finish(&reply, &status, (void*)1);
 		}
-    
-    
+	else
+		{	
+		info->set_file_path( "" ); //<---the name of input file
+    	info->set_file_offset( 0 ); // we do not use this
+    	info->set_map_reduce( map_or_reduce );
+    	info->set_data_size( 0 ); // we do not use this
+    	info->set_id_assigned_to_worker(1); // we do not use this
+    	info->set_output_filename( "" ); //<---the name of output file
+    	contextPtrHB = new ClientContext(); // remember to delete it somewhere
+    	std::unique_ptr<ClientAsyncResponseReader<Worker_to_Master> > rpc( stub_->AsyncAssignTask(contextPtrHB, request, &cq) );
+    	rpc->Finish(&reply, &status, (void*)1);
+		}
 
     // stub_->AsyncSayHello() performs the RPC call, returning an instance we
     // store in "rpc". Because we are using the asynchronous API, we need to
     // hold on to the "rpc" instance in order to get updates on the ongoing RPC.
     //rpc = move( stub_->AsyncAssignTask(&context, request, &cq) );
     // *context = nullptr;
-    contextPtr = new ClientContext(); // remember to delete it somewhere
-    std::unique_ptr<ClientAsyncResponseReader<Worker_to_Master> > rpc( stub_->AsyncAssignTask(contextPtr, request, &cq) );
+    //contextPtr = new ClientContext(); // remember to delete it somewhere
+    //std::unique_ptr<ClientAsyncResponseReader<Worker_to_Master> > rpc( stub_->AsyncAssignTask(contextPtr, request, &cq) );
 
     // Request that, upon completion of the RPC, "reply" be updated with the
     // server's response; "status" with the indication of whether the operation
     // was successful. Tag the request with the integer 1.
-    rpc->Finish(&reply, &status, (void*)1);
+    //rpc->Finish(&reply, &status, (void*)1);
 	}
 
 bool Master::MasterGRPC::Check_result()
@@ -197,6 +216,8 @@ bool Master::MasterGRPC::Check_result()
     
     //cq.Next(&got_tag, &ok);
     cq.AsyncNext(&got_tag, &ok, std::chrono::system_clock::now()+std::chrono::milliseconds(50));
+
+
 
     // Verify that the result from "cq" corresponds, by its tag, our previous
     // request.
@@ -244,10 +265,12 @@ bool Master::MasterGRPC::Check_result()
 void Master::run_map()
 	{
 	vector<bool> worker_busy(num_of_worker, false); // record which worker is busy / available for a task
+	vector<int> worker_to_taskIdx(num_of_worker, -1);
 	queue<int> task_idx_Q;
 
 	int i, task_finished = 0;
 	int taskIdx;
+	int trialTime;
 
 	i = 0;
 	while(i < num_of_file_shard)
@@ -268,6 +291,7 @@ void Master::run_map()
 				taskIdx = task_idx_Q.front();
 				task_idx_Q.pop();
 				cout << "Worker " << i << " is assigned with task " << taskIdx << endl;
+				worker_to_taskIdx[i] = taskIdx;
 				connection_vec[i]->AssignTask(1, taskIdx);
 				worker_busy[i] = true;
 				// --task_remain;
@@ -292,6 +316,25 @@ void Master::run_map()
 				else
 					{
 					// check if the server is alive
+					//delete connection_vec[i]->contextPtr;
+					connection_vec[i]->AssignTask(3, 0);
+					trialTime = 0;
+					while(trialTime < 11)
+						{
+						if(connection_vec[i]->Check_result())
+							{	
+							cout << "Worker " << i << ", still alive" << endl;
+							delete connection_vec[i]->contextPtrHB;
+							break;
+							}
+						++trialTime;
+						}
+					if(trialTime == 11)
+						{
+						cout << "Worker " << i << ", dead :(" << endl;
+						worker_dead[i] = true;
+						task_idx_Q.push( worker_to_taskIdx[i] );
+						}
 					}
 				}
 			++i;
@@ -331,10 +374,12 @@ void Master::run_map()
 void Master::run_reduce()
 	{
 	vector<bool> worker_busy(num_of_worker, false); // record which worker is busy / available for a task
+	vector<int> worker_to_taskIdx(num_of_worker, -1);
 	queue<int> task_idx_Q;
 
 	int i, task_finished = 0;
 	int taskIdx;
+	int trialTime;
 
 	i = 0;
 	while(i < reducer_input_filename_vec.size())
@@ -348,13 +393,19 @@ void Master::run_reduce()
 		{	
 		i = 0;
 		while(i < num_of_worker && !task_idx_Q.empty() )
-			{	
+			{
+			if(worker_dead[i] == true)
+				{
+				++i;
+				continue;
+				}	
 			cout << "Check if worker " << i << " can accept the task." << endl;
 			if(worker_busy[i] == false)
 				{
 				taskIdx = task_idx_Q.front();
 				task_idx_Q.pop();
 				cout << "Worker " << i << " is assigned with task " << taskIdx << endl;
+				worker_to_taskIdx[i] = taskIdx;
 				connection_vec[i]->AssignTask(2, taskIdx);
 				worker_busy[i] = true;
 				//--task_remain;
@@ -367,6 +418,11 @@ void Master::run_reduce()
 		i = 0;
 		while(i < num_of_worker)
 			{	
+			if(worker_dead[i] == true)
+				{
+				++i;
+				continue;
+				}
 			if( worker_busy[i] == true )
 				{	
 				if( connection_vec[i]->Check_result() == true )
@@ -378,7 +434,24 @@ void Master::run_reduce()
 					}
 				else
 					{
-					// check if the server is alive
+					connection_vec[i]->AssignTask(3, 0);
+					trialTime = 0;
+					while(trialTime < 11)
+						{
+						if(connection_vec[i]->Check_result())
+							{	
+							cout << "Worker " << i << ", still alive" << endl;
+							delete connection_vec[i]->contextPtrHB;
+							break;
+							}
+						++trialTime;
+						}
+					if(trialTime == 11)
+						{
+						cout << "Worker " << i << ", dead :(" << endl;
+						worker_dead[i] = true;
+						task_idx_Q.push( worker_to_taskIdx[i] );
+						}
 					}
 				}
 			++i;

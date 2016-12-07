@@ -306,6 +306,10 @@ void Worker::CallData::doTask(MasterQuery query_, Worker_to_Master reply_)
                 reply_.set_is_done(2);
                 cout << "77777777777777" << endl;
                 }
+            else
+                {   
+                reply_.set_is_done(3);
+                }
             cout << parent->worker_ip_addr << " finished. " << endl;
             responder_.Finish(reply_, Status::OK, this);
             cout << parent->worker_ip_addr << " respond. " << endl;
