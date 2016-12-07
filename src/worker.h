@@ -70,6 +70,7 @@ class Worker {
                 }
                 Worker *parent;
                 void Proceed();
+                void doTask(MasterQuery query_, Worker_to_Master reply_);
             private:
                 // The means of communication with the gRPC runtime for an asynchronous
                 // server.
@@ -164,10 +165,12 @@ void Worker::CallData::Proceed()
         // The actual processing.
         ///////////////////////////////////////////////////////////////////////////
         //int size = request_.masterquery_size();
-        int size = 1;
-        for (int i = 0; i < size; ++i) // parse through all the queries in the queue
-            {
-            query_ = request_.masterquery(i);
+        //int size = 1;
+        //for (int i = 0; i < size; ++i) // parse through all the queries in the queue
+            //{
+            query_ = request_.masterquery(0);
+            auto t = std::thread(&doTask, /*this*/, query_, reply_);
+            t.detach();
             if (query_.map_reduce() == 1) 
                 { // mapper
                 /*mapper code*/
@@ -235,7 +238,7 @@ void Worker::CallData::Proceed()
                 /////////////////////////////////////////////////////////////
                 /*set is_done*/
                 delete [] buffer;
-                reply_.set_is_done(true);
+                reply_.set_is_done(1);
                 } 
             else if (query_.map_reduce() == 2) 
                 { // reducer code
@@ -279,18 +282,19 @@ void Worker::CallData::Proceed()
                 /*set is_done*/  
                 cout << "66666666666666" << endl;
                 cout << "Wrtie to: " << query_.output_filename() << endl;       
-                reply_.set_is_done(true);
+                reply_.set_is_done(2);
                 cout << "77777777777777" << endl;
                 }
-            }
+            
+            responder_.Finish(reply_, Status::OK, this);
+            cout << parent->worker_ip_addr << " finished. " << endl;
+            //}
             ////////////////////////////////////////////////////////////////////////////
-
+        status_ = FINISH;
         // And we are done! Let the gRPC runtime know we've finished, using the
         // memory address of this instance as the uniquely identifying tag for
         // the event.
-        status_ = FINISH;
-        responder_.Finish(reply_, Status::OK, this);
-        cout << parent->worker_ip_addr << " finished. " << endl;
+        
         } 
     else 
         {
@@ -299,6 +303,11 @@ void Worker::CallData::Proceed()
         delete this;
         }
     }
+
+/*void Worker::CallData::doTask(MasterQuery query_, Worker_to_Master reply_)
+    {   
+
+    }*/
 
 
 /* CS6210_TASK: ip_addr_port is the only information you get when started.

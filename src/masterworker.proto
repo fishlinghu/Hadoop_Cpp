@@ -27,5 +27,5 @@ message MasterQuery{
 
 message Worker_to_Master {
 	// string file_path = 1;
-	bool is_done = 1;
+	uint32 is_done = 1;
 }
