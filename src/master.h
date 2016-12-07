@@ -3,6 +3,7 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <queue>
 #include "mapreduce_spec.h"
 #include "file_shard.h"
 
@@ -243,27 +244,38 @@ bool Master::MasterGRPC::Check_result()
 void Master::run_map()
 	{
 	vector<bool> worker_busy(num_of_worker, false); // record which worker is busy / available for a task
+	queue<int> task_idx_Q;
 
 	int i, task_finished = 0;
+	int taskIdx;
 
-	int task_remain = num_of_file_shard - 1; // -1 because it is used as the index which starts from 0
-	while( task_remain >= 0 )
+	i = 0;
+	while(i < num_of_file_shard)
+		{
+		task_idx_Q.push( i );
+		++i;
+		}
+
+	//int task_remain = num_of_file_shard - 1; // -1 because it is used as the index which starts from 0
+	while( !task_idx_Q.empty() || task_finished < num_of_file_shard )
 		{	
 		i = 0;
-		while(i < num_of_worker && task_remain >= 0)
+		while(i < num_of_worker && !task_idx_Q.empty() )
 			{	
 			cout << "Check if worker " << i << " can accept the task." << endl;
 			if(worker_busy[i] == false)
 				{
-				cout << "Worker " << i << " is assigned with task " << task_remain << endl;
-				connection_vec[i]->AssignTask(1, task_remain);
+				taskIdx = task_idx_Q.front();
+				task_idx_Q.pop();
+				cout << "Worker " << i << " is assigned with task " << taskIdx << endl;
+				connection_vec[i]->AssignTask(1, taskIdx);
 				worker_busy[i] = true;
-				--task_remain;
+				// --task_remain;
 				}
 			cout << "ENDIF" << endl;
 			++i;
 			}
-		cout << "Task remain: " << task_remain << endl;
+		cout << "Task remain: " << task_idx_Q.size() << endl;
 		// now all workers are busy, or all tasks are assigned
 		i = 0;
 		while(i < num_of_worker)
@@ -286,7 +298,7 @@ void Master::run_map()
 			}
 		}
 
-	while(task_finished < num_of_file_shard)
+	/*while(task_finished < num_of_file_shard)
 		{	
 		i = 0;
 		while(i < num_of_worker)
@@ -306,7 +318,7 @@ void Master::run_map()
 				}
 			++i;
 			}
-		}
+		}*/
 	}
 
 /*void Master::run_reduce()
@@ -319,27 +331,38 @@ void Master::run_map()
 void Master::run_reduce()
 	{
 	vector<bool> worker_busy(num_of_worker, false); // record which worker is busy / available for a task
+	queue<int> task_idx_Q;
 
 	int i, task_finished = 0;
+	int taskIdx;
 
-	int task_remain = reducer_input_filename_vec.size() - 1; // -1 because it is used as the index which starts from 0
-	while( task_remain >= 0 )
+	i = 0;
+	while(i < reducer_input_filename_vec.size())
+		{
+		task_idx_Q.push( i );
+		++i;
+		}
+
+	//int task_remain = reducer_input_filename_vec.size() - 1; // -1 because it is used as the index which starts from 0
+	while( !task_idx_Q.empty() || task_finished < num_of_file_shard )
 		{	
 		i = 0;
-		while(i < num_of_worker && task_remain >= 0)
+		while(i < num_of_worker && !task_idx_Q.empty() )
 			{	
 			cout << "Check if worker " << i << " can accept the task." << endl;
 			if(worker_busy[i] == false)
 				{
-				cout << "Worker " << i << " is assigned with task " << task_remain << endl;
-				connection_vec[i]->AssignTask(2, task_remain);
+				taskIdx = task_idx_Q.front();
+				task_idx_Q.pop();
+				cout << "Worker " << i << " is assigned with task " << taskIdx << endl;
+				connection_vec[i]->AssignTask(2, taskIdx);
 				worker_busy[i] = true;
-				--task_remain;
+				//--task_remain;
 				}
 			cout << "ENDIF" << endl;
 			++i;
 			}
-		cout << "Task remain: " << task_remain << endl;
+		cout << "Task remain: " << task_idx_Q.size() << endl;
 		// now all workers are busy, or all tasks are assigned
 		i = 0;
 		while(i < num_of_worker)
@@ -362,7 +385,7 @@ void Master::run_reduce()
 			}
 		}
 
-	while(task_finished < reducer_input_filename_vec.size())
+	/*while(task_finished < reducer_input_filename_vec.size())
 		{	
 		cout << "Task finished: " << task_finished << ":" << num_of_file_shard << endl;
 		i = 0;
@@ -383,7 +406,7 @@ void Master::run_reduce()
 				}
 			++i;
 			}
-		}
+		}*/
 	}
 
 bool Master::check_end(vector<bool> &input)
@@ -568,6 +591,7 @@ bool Master::run()
 	cout << "Map and sort success. " << endl;
 	run_reduce();
 	collect_result();
+	
 	// Assign reduce tasks to worker
 	//flag1 = master.AssignTask(2, 0);
 	//flag2 = master.AssignTask(2, 1);

@@ -160,6 +160,7 @@ void Worker::CallData::Proceed()
         // Spawn a new CallData instance to serve new clients while we process
         // the one for this CallData. The instance will deallocate itself as
         // part of its FINISH state.
+        
         new CallData(service_, cq_, parent);
       
         // The actual processing.
@@ -169,9 +170,29 @@ void Worker::CallData::Proceed()
         //for (int i = 0; i < size; ++i) // parse through all the queries in the queue
             //{
             query_ = request_.masterquery(0);
-            auto t = std::thread(&doTask, /*this*/, query_, reply_);
+            cout << "Got request: " << request_.masterquery(0).file_path() << endl;
+            auto t = std::thread(&Worker::CallData::doTask, this, query_, reply_);
             t.detach();
-            if (query_.map_reduce() == 1) 
+            
+            //}
+            ////////////////////////////////////////////////////////////////////////////
+        
+        // And we are done! Let the gRPC runtime know we've finished, using the
+        // memory address of this instance as the uniquely identifying tag for
+        // the event.
+        status_ = FINISH;
+        } 
+    else 
+        {
+        GPR_ASSERT(status_ == FINISH);
+        // Once in the FINISH state, deallocate ourselves (CallData).
+        //delete this;
+        }
+    }
+
+void Worker::CallData::doTask(MasterQuery query_, Worker_to_Master reply_)
+    {   
+    if (query_.map_reduce() == 1) 
                 { // mapper
                 /*mapper code*/
 
@@ -206,7 +227,7 @@ void Worker::CallData::Proceed()
                     //line = line + " ";
                     //mapper->map(line); // this will call the emit() function for a given line
                     //}
-                cout << "Input for mapper: " << bufStr << endl;
+                //cout << "Input for mapper: " << bufStr << endl;
                 mapper->map( bufStr);
                 
                 infile.close();
@@ -285,29 +306,12 @@ void Worker::CallData::Proceed()
                 reply_.set_is_done(2);
                 cout << "77777777777777" << endl;
                 }
-            
-            responder_.Finish(reply_, Status::OK, this);
             cout << parent->worker_ip_addr << " finished. " << endl;
-            //}
-            ////////////////////////////////////////////////////////////////////////////
-        status_ = FINISH;
-        // And we are done! Let the gRPC runtime know we've finished, using the
-        // memory address of this instance as the uniquely identifying tag for
-        // the event.
-        
-        } 
-    else 
-        {
-        GPR_ASSERT(status_ == FINISH);
-        // Once in the FINISH state, deallocate ourselves (CallData).
-        delete this;
-        }
+            responder_.Finish(reply_, Status::OK, this);
+            cout << parent->worker_ip_addr << " respond. " << endl;
+            //status_ = FINISH;
+            //delete this;
     }
-
-/*void Worker::CallData::doTask(MasterQuery query_, Worker_to_Master reply_)
-    {   
-
-    }*/
 
 
 /* CS6210_TASK: ip_addr_port is the only information you get when started.
