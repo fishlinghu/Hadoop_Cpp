@@ -43,7 +43,7 @@ class Master {
 			public:
 				explicit MasterGRPC(std::shared_ptr<Channel> channel, Master* ptr)
     				: stub_(jobAssign::NewStub(channel)) {caller = ptr;}
-    			void AssignTask(int map_or_reduce, int task_id);
+    			void AssignTask(int map_or_reduce, int task_id, int workerID);
     			bool Check_result();
     			std::unique_ptr<jobAssign::Stub> stub_;
     			// std::unique_ptr<ClientAsyncResponseReader<Worker_to_Master> > rpc;
@@ -144,7 +144,7 @@ void Master::hi_worker()
 		}
 	}
 
-void Master::MasterGRPC::AssignTask(int map_or_reduce, int task_id) //1 for map, 2 for reduce
+void Master::MasterGRPC::AssignTask(int map_or_reduce, int task_id, int workerID) //1 for map, 2 for reduce
 	{
 	//auto channel = grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials());
 	//auto stub = masterworker::jobAssign::NewStub(channel);
@@ -160,7 +160,7 @@ void Master::MasterGRPC::AssignTask(int map_or_reduce, int task_id) //1 for map,
     	info->set_map_reduce( map_or_reduce );
     	info->set_data_size( caller->file_shards_vec[task_id].dataSize ); //<--
     	//info->set_data_size( 20 );
-    	info->set_id_assigned_to_worker(1); // we do not use this
+    	info->set_id_assigned_to_worker(workerID); 
     	info->set_output_filename(caller->map_output_filename_vec[task_id]); //<---the name of output file
     	contextPtr = new ClientContext(); // remember to delete it somewhere
     	std::unique_ptr<ClientAsyncResponseReader<Worker_to_Master> > rpc( stub_->AsyncAssignTask(contextPtr, request, &cq) );
@@ -172,7 +172,7 @@ void Master::MasterGRPC::AssignTask(int map_or_reduce, int task_id) //1 for map,
     	info->set_file_offset( 0 ); // we do not use this
     	info->set_map_reduce( map_or_reduce );
     	info->set_data_size( 0 ); // we do not use this
-    	info->set_id_assigned_to_worker(1); // we do not use this
+    	info->set_id_assigned_to_worker(workerID); 
     	info->set_output_filename( caller->reducer_input_filename_vec[task_id] + "_out" ); //<---the name of output file
     	contextPtr = new ClientContext(); // remember to delete it somewhere
     	std::unique_ptr<ClientAsyncResponseReader<Worker_to_Master> > rpc( stub_->AsyncAssignTask(contextPtr, request, &cq) );
@@ -267,6 +267,7 @@ void Master::run_map()
 	vector<bool> worker_busy(num_of_worker, false); // record which worker is busy / available for a task
 	vector<int> worker_to_taskIdx(num_of_worker, -1);
 	queue<int> task_idx_Q;
+	vector<int> notReady_count(num_of_worker, 0);
 
 	int i, task_finished = 0;
 	int taskIdx;
@@ -292,7 +293,7 @@ void Master::run_map()
 				task_idx_Q.pop();
 				cout << "Worker " << i << " is assigned with task " << taskIdx << endl;
 				worker_to_taskIdx[i] = taskIdx;
-				connection_vec[i]->AssignTask(1, taskIdx);
+				connection_vec[i]->AssignTask(1, taskIdx, i);
 				worker_busy[i] = true;
 				// --task_remain;
 				}
@@ -310,6 +311,7 @@ void Master::run_map()
 					{	
 					// worker i is available for a nex task
 					worker_busy[i] = false;
+					notReady_count[i] = 0;
 					delete connection_vec[i]->contextPtr;
 					++task_finished;
 					}
@@ -317,7 +319,7 @@ void Master::run_map()
 					{
 					// check if the server is alive
 					//delete connection_vec[i]->contextPtr;
-					connection_vec[i]->AssignTask(3, 0);
+					connection_vec[i]->AssignTask(3, 0, i);
 					trialTime = 0;
 					while(trialTime < 11)
 						{
@@ -336,6 +338,12 @@ void Master::run_map()
 						task_idx_Q.push( worker_to_taskIdx[i] );
 						}
 					}
+				}
+			else
+				{	
+				notReady_count[i] += 1;
+				if(notReady_count[i] > 100)
+					task_idx_Q.push( worker_to_taskIdx[i] );
 				}
 			++i;
 			}
@@ -375,6 +383,7 @@ void Master::run_reduce()
 	{
 	vector<bool> worker_busy(num_of_worker, false); // record which worker is busy / available for a task
 	vector<int> worker_to_taskIdx(num_of_worker, -1);
+	vector<int> notReady_count(num_of_worker, 0);
 	queue<int> task_idx_Q;
 
 	int i, task_finished = 0;
@@ -406,7 +415,7 @@ void Master::run_reduce()
 				task_idx_Q.pop();
 				cout << "Worker " << i << " is assigned with task " << taskIdx << endl;
 				worker_to_taskIdx[i] = taskIdx;
-				connection_vec[i]->AssignTask(2, taskIdx);
+				connection_vec[i]->AssignTask(2, taskIdx, i);
 				worker_busy[i] = true;
 				//--task_remain;
 				}
@@ -428,13 +437,14 @@ void Master::run_reduce()
 				if( connection_vec[i]->Check_result() == true )
 					{	
 					// worker i is available for a nex task
+					notReady_count[i] = 0;
 					worker_busy[i] = false;
 					delete connection_vec[i]->contextPtr;
 					++task_finished;
 					}
 				else
 					{
-					connection_vec[i]->AssignTask(3, 0);
+					connection_vec[i]->AssignTask(3, 0, i);
 					trialTime = 0;
 					while(trialTime < 11)
 						{
@@ -453,6 +463,12 @@ void Master::run_reduce()
 						task_idx_Q.push( worker_to_taskIdx[i] );
 						}
 					}
+				}
+			else
+				{	
+				notReady_count[i] += 1;
+				if(notReady_count[i] > 100)
+					task_idx_Q.push( worker_to_taskIdx[i] );
 				}
 			++i;
 			}
@@ -600,9 +616,9 @@ void Master::sort_and_write()
 	while(i < num_of_file_shard)
 		{	
 		ifs[i]->close();
-		temp_filename = map_output_filename_vec[i] + "_tmp";
-		if(remove( temp_filename.c_str() )!=0)
-			cout << "Cannot remove file " << temp_filename << endl;
+		//temp_filename = map_output_filename_vec[i] + "_tmp";
+		//if(remove( temp_filename.c_str() )!=0)
+			//cout << "Cannot remove file " << temp_filename << endl;
 		if(remove( map_output_filename_vec[i].c_str() )!=0)
 			cout << "Cannot remove file " << temp_filename << endl;
 		++i;

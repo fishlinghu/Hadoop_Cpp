@@ -204,6 +204,7 @@ void Worker::CallData::doTask(MasterQuery query_, Worker_to_Master reply_)
                 with appropriate offset and data-size*/
 
                 ifstream infile(query_.file_path());
+                int workerID = query_.id_assigned_to_worker();
                 int data_size = query_.data_size();
                 int file_offset = query_.file_offset();
                 char* buffer = new char[data_size+1];
@@ -219,7 +220,8 @@ void Worker::CallData::doTask(MasterQuery query_, Worker_to_Master reply_)
                 string bufStr(buffer);
 
                 string out_filename_for_master = query_.output_filename();
-                string mapper_output_filename = out_filename_for_master + "_tmp";
+                string mapper_output_filename = to_string(workerID) + "_tmp1";
+                string sorted_output_filename = to_string(workerID) + "_tmp2";
                 parent->set_mapper_output_filename(mapper, mapper_output_filename);
 
                 //while(std::getline(ss, line))
@@ -238,7 +240,7 @@ void Worker::CallData::doTask(MasterQuery query_, Worker_to_Master reply_)
                 vector<string> names;
                 ifstream in(mapper_output_filename.c_str()); // file-pointer associated with input file
                 fstream out; // file-pointer associated with output file
-                out.open(out_filename_for_master.c_str(), fstream::out); // if not present create it.
+                out.open(sorted_output_filename.c_str(), fstream::out); // if not present create it.
                 //out.open("WTF", fstream::out);
                 if(!in.is_open())
                     cout << "Unable to open file" << endl;
@@ -259,6 +261,14 @@ void Worker::CallData::doTask(MasterQuery query_, Worker_to_Master reply_)
                 /////////////////////////////////////////////////////////////
                 /*set is_done*/
                 delete [] buffer;
+                ifstream f(out_filename_for_master.c_str());
+                if(!f.good())
+                    {
+                    rename(sorted_output_filename.c_str(), out_filename_for_master.c_str());
+                    }
+                f.close();
+                remove( mapper_output_filename.c_str() );
+                remove( sorted_output_filename.c_str() );
                 reply_.set_is_done(1);
                 } 
             else if (query_.map_reduce() == 2) 
@@ -293,7 +303,11 @@ void Worker::CallData::doTask(MasterQuery query_, Worker_to_Master reply_)
                 cout << "44444444444444" << endl;
                 fin.close();
 
-                parent->set_reducer_output_filename(reducer, query_.output_filename());
+                int workerID = query_.id_assigned_to_worker();
+                string out_filename_for_master = query_.output_filename();
+                string reducer_output_filename = to_string(workerID) + "_tmp1";
+
+                parent->set_reducer_output_filename(reducer, reducer_output_filename);
                 cout << "55555555555555" << endl;
                 // instead of passing each entry...just pass the whole vector of string which has each entry as "1"
                 // number of entry is wrt how many times the key is repeated in the file.
@@ -302,7 +316,14 @@ void Worker::CallData::doTask(MasterQuery query_, Worker_to_Master reply_)
                 // reducer->reduce("dummy"/*key*/, std::vector<std::string>({"1", "1"})/*all the values for the given key!!!!*/);    
                 /*set is_done*/  
                 cout << "66666666666666" << endl;
-                cout << "Wrtie to: " << query_.output_filename() << endl;       
+                cout << "Wrtie to: " << query_.output_filename() << endl;
+                ifstream f(out_filename_for_master.c_str());
+                if(!f.good())
+                    {
+                    rename(reducer_output_filename.c_str(), out_filename_for_master.c_str());
+                    }
+                f.close();
+                remove( reducer_output_filename.c_str() );
                 reply_.set_is_done(2);
                 cout << "77777777777777" << endl;
                 }
