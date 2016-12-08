@@ -272,6 +272,8 @@ void Master::run_map()
 	int i, task_finished = 0;
 	int taskIdx;
 	int trialTime;
+	int avg = 100;
+	int j;
 
 	i = 0;
 	while(i < num_of_file_shard)
@@ -311,6 +313,7 @@ void Master::run_map()
 					{	
 					// worker i is available for a nex task
 					worker_busy[i] = false;
+					avg = (avg + notReady_count[i])/2;
 					notReady_count[i] = 0;
 					delete connection_vec[i]->contextPtr;
 					++task_finished;
@@ -342,7 +345,8 @@ void Master::run_map()
 			else
 				{	
 				notReady_count[i] += 1;
-				if(notReady_count[i] > 100)
+				
+				if(notReady_count[i] >= 100)
 					task_idx_Q.push( worker_to_taskIdx[i] );
 				}
 			++i;
@@ -389,6 +393,7 @@ void Master::run_reduce()
 	int i, task_finished = 0;
 	int taskIdx;
 	int trialTime;
+	int avg = 100;
 
 	i = 0;
 	while(i < reducer_input_filename_vec.size())
@@ -437,6 +442,7 @@ void Master::run_reduce()
 				if( connection_vec[i]->Check_result() == true )
 					{	
 					// worker i is available for a nex task
+					avg = (avg + notReady_count[i])/2;
 					notReady_count[i] = 0;
 					worker_busy[i] = false;
 					delete connection_vec[i]->contextPtr;
@@ -467,7 +473,8 @@ void Master::run_reduce()
 			else
 				{	
 				notReady_count[i] += 1;
-				if(notReady_count[i] > 100)
+				
+				if(notReady_count[i] >= 100)
 					task_idx_Q.push( worker_to_taskIdx[i] );
 				}
 			++i;
