@@ -1,8 +1,0 @@
-this is
-a 
-sample
-file to 
-output the 
-first 
-word 
-of each sentence.
