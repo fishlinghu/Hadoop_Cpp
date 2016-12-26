@@ -1,4 +1,4 @@
-### external directory (Do not make any changes in this directory)
+### external directory
 When you provide a package(you can relate with grpc) to the outside world, you expose mainly two things: `libraries and header files`.
 
 1. **external/include** - This directory consists of header files containing function declarations, that the user will make use of to run MapReduce.
@@ -9,7 +9,7 @@ When you provide a package(you can relate with grpc) to the outside world, you e
   - `libmapreduce.a` - Library contating definitions for `mapreduce.h`.
   - `libmr_worker.a` - Library contating definitions for `mr_task_factory.h`.
 
-### test directory (Do not make any changes in this directory)
+### test directory
 This gives you an insight of how a user will use your MapReduce package.
 
 1. **`config.ini`** - Through this file the user gives input to your MapReduce framework as to how the user would like it to run.
@@ -18,9 +18,7 @@ This gives you an insight of how a user will use your MapReduce package.
 
 3. **`main.cc`** - This is just the entry point in the user's binary to run the MapReduce job.
 
-### src directory (Read the comments in each source file that indicates what you are supposed to do with it)
-Now you own the development of MapReduce and this is where you implement the ideas.
-We are describing here only the files which you are supposed to work on. For the other files, just have a quick glance through them. It should be straightforward to understand their purpose.
+### src directory
 
 1. **`masterworker.proto`** - containing the grpc protocol between master and worker.
 
