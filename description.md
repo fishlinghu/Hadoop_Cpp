@@ -1,16 +1,6 @@
-### Big picture
-  - In this project, you are going to implement a simplied version of Map Reduce infrastructure. Please read [MapReduce](https://static.googleusercontent.com/media/research.google.com/en//archive/mapreduce-osdi04.pdf) paper, before you start.
-  - This is going to be a long project, **Start late at your own risk** 
-  - Short [**video**](https://youtu.be/bwBrduQ1RUE) browsing through the project structure.
-
-![Meme](https://memecrunch.com/meme/1HMYR/should-have-started-earlier/image.jpg?w=500&c=1)
-
 ### About MapReduce
 
 MapReduce is a programming model and an associated implementation for processing and generating large data sets. Users specify a map function that processes a key/value pair to generate a set of intermediate key/value pairs, and a reduce function that merges all intermediate values associated with the same intermediate key. Programs written in this functional style are automatically parallelized and executed on a large cluster of commodity machines. The run-time system takes care of the details of partitioning the input data, scheduling the program’s execution across a set of machines, handling machine failures, and managing the required inter-machine communication.
-
-### Learning outcomes
-  - MapReduce Infrastructure
 
 ### What's simplified here (comparing from the original paper)
 1. **`The MapReduce library in the user program first splits the input files into M pieces of typically 16 megabytes to 64 megabytes (MB) per piece (controllable by the user via an optional parameter). It then starts up many copies of the program on a cluster of machines.`**
@@ -64,27 +54,5 @@ MapReduce is a programming model and an associated implementation for processing
  - This would be done the same way in your implementation. Waking up is simply the return from the function call.
 
 
-### How You Are Going to Implement It
+### How I Implement It
 - [Code walk through](structure.md)
-
-### Grading
-This project is not performance oriented, we will only test the functionality.
-The Rubric is:
-
-- **5.0 points** - `Framework & Master`: Handling config files, sharding, managing worker pool, assigning tasks to the workers, tracking worker progress, handling stragglers.
-- **2.5 points** - `Mapper`: Reading input shard, passing data to the BaseMapper's implentation(UserMapper class), receiving output key, value pairs from the it and writig them to correct intermediate files.
-- **2.5 points** - `Reducer`: Reading respective intermediate files, passing the key, value pairs to the BaseReducer's implementation(UserReducer class), writing the output key, value pairs from it to the output files, ensuring that output is sorted on the output keys.
-
-### Deliverables
-1. Please follow the instructions carefully. **You can submit the whole src folder as it is.** Specficially the folder you hand in must contain the following:
-  - `README` - Optional text file containing anything specific about the project that you want to tell the TAs.
-  - `Makefile` - It is already given to you working for the files mentioned below. You might need to change it if you add more source files.
-  - `Proto file` - **masterworker.proto** containing the grpc specification between master and worker.
-  - `Master source files` - **master.h** containing the source code for master management. Note that you can add optional supporting files for master if you want.
-  - `Worker source files` - **worker.h** containing the source code for worker management. Note that you can add optional supporting files for master if you want.
-  - `MR tasks source file` - **mr_tasks.h** containing the source code for Mapper/Reducer Internal implementation. All your data structure and logic for internal mapper/reducer should be in this file only, no supporting files.
-  - `File Sharding source file` - **file_shard.h** containing the source code for file splitting logic. All your data structure and logic for file sharding should be in this file only, no supporting files.
-  - `MapReduce Specification source file` - **mapreduce_spec.h** containing the source code for map reduce specification. All your data structure and logic for map reduce specification should be in this file only, no supporting files.
-  - Again, if you have used additional supporting source files, don't forget to submit them.
-2. Hand in your folder as a zip file through [T-Square](t-square.gatech.edu)
-
